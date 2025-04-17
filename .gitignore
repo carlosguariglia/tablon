@@ -1,0 +1,11 @@
+# Archivos de entorno
+backend/.env
+
+
+# Dependencias
+backend/node_modules/
+
+
+# Archivos del sistema
+.DS_Store
+*.log
