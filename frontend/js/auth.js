@@ -15,6 +15,33 @@ async function verifyAuth() {
     return false;
   }
 }
+function showToast(message, isError = true) {
+  // Elimina toasts anteriores para evitar duplicados
+  const oldToasts = document.querySelectorAll('.toast');
+  oldToasts.forEach(toast => toast.remove());
+
+  const toast = document.createElement('div');
+  toast.className = `toast ${isError ? 'error' : 'success'}`;
+  toast.textContent = message;
+  
+  // Añade estilos inline como respaldo
+  toast.style.position = 'fixed';
+  toast.style.top = '20px';
+  toast.style.right = '20px';
+  toast.style.padding = '12px 24px';
+  toast.style.borderRadius = '4px';
+  toast.style.color = 'white';
+  toast.style.zIndex = '1000';
+  toast.style.animation = 'fadeIn 0.3s';
+  toast.style.backgroundColor = isError ? '#ff4444' : '#00C851';
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.animation = 'fadeOut 0.3s';
+    toast.addEventListener('animationend', () => toast.remove());
+  }, 3000);
+}
 
 function showMessage(elementId, message, isError = true) {
   const messageEl = document.getElementById(elementId);

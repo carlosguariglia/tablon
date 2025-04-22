@@ -23,9 +23,13 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 app.use('/api/auth', authRoutes);
 
 // Ruta SPA - Maneja todas las rutas no-API
-app.get('*', (req, res) => {
+app.get(['/', '/login', '/register', '/welcome'], (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
+
+//app.get('*', (req, res) => {
+//  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+//});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
