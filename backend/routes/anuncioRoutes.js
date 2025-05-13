@@ -3,63 +3,57 @@ const router = express.Router();
 const db = require('../config/db');
 
 router.get('/', async (req, res) => {
-    console.log('[API] Iniciando consulta de anuncios...');
+    console.log('[API] Obteniendo anuncios...');
     
     try {
-        // 1. Verificar conexión
-        const [testResult] = await db.query('SELECT 1+1 AS test');
-        console.log('[TEST] Conexión OK:', testResult);
-
-        // 2. Consulta principal - FORZAR siempre array
         const sqlQuery = `
             SELECT 
                 a.id,
                 a.titulo,
                 a.descripcion,
-                a.fecha,
+                DATE_FORMAT(a.fecha, '%Y-%m-%d %H:%i:%s') as fecha,
                 a.lugar,
                 a.precio,
                 a.categoria,
                 a.participantes,
                 u.name as autor,
-                a.created_at
+                DATE_FORMAT(a.created_at, '%Y-%m-%d %H:%i:%s') as created_at
             FROM anuncios a
             LEFT JOIN users u ON a.user_id = u.id
             ORDER BY a.fecha DESC
         `;
 
         console.log('[SQL] Ejecutando:', sqlQuery);
-        const [results] = await db.query(sqlQuery);
+        const [results, metadata] = await db.query(sqlQuery);
 
-        // 3. Normalizar resultados (siempre array)
-        let anuncios = [];
-        
-        if (results) {
-            // Si es un solo objeto (como en tu caso), convertirlo a array
-            if (!Array.isArray(results)) {
-                anuncios = [results];
-            } else {
-                anuncios = results;
-            }
+        console.log('[DEBUG] Resultados crudos:', JSON.stringify(results, null, 2));
+
+        if (!results || results.length === 0) {
+            return res.status(200).json([]);
         }
 
-        console.log(`[INFO] Anuncios encontrados: ${anuncios.length}`);
+        // Función de mapeo corregida para MariaDB
+        const anuncios = results.map(row => {
+            const anuncio = {
+                id: row.id ? parseInt(row.id) : null,
+                titulo: row.titulo ? String(row.titulo) : 'Sin título',
+                descripcion: row.descripcion ? String(row.descripcion) : '',
+                fecha: row.fecha ? new Date(row.fecha).toISOString() : null,
+                lugar: row.lugar ? String(row.lugar) : 'Ubicación no especificada',
+                precio: row.precio !== null && !isNaN(row.precio) ? 
+                    parseFloat(row.precio) : null,
+                categoria: row.categoria ? String(row.categoria) : 'Otros',
+                participantes: row.participantes ? String(row.participantes) : '',
+                autor: row.autor ? String(row.autor) : 'Anónimo',
+                created_at: row.created_at ? new Date(row.created_at).toISOString() : null
+            };
+            
+            console.log('[DEBUG] Anuncio mapeado:', anuncio);
+            return anuncio;
+        });
 
-        // 4. Formatear respuesta
-        const response = anuncios.map(item => ({
-            id: item.id,
-            titulo: item.titulo || 'Sin título',
-            descripcion: item.descripcion || '',
-            fecha: formatDate(item.fecha),
-            lugar: item.lugar || 'Ubicación no especificada',
-            precio: item.precio !== null ? parseFloat(item.precio) : null,
-            categoria: item.categoria || 'Otros',
-            participantes: item.participantes || '',
-            autor: item.autor || 'Anónimo',
-            created_at: formatDate(item.created_at)
-        }));
-
-        res.json(response);
+        console.log('[INFO] Anuncios formateados correctamente:', anuncios);
+        res.json(anuncios);
 
     } catch (error) {
         console.error('[ERROR] Detalles:', {
@@ -69,20 +63,10 @@ router.get('/', async (req, res) => {
         });
         
         res.status(500).json({ 
-            success: false,
             error: 'Error al obtener anuncios',
             details: process.env.NODE_ENV === 'development' ? error.message : null
         });
     }
 });
-
-function formatDate(dateValue) {
-    if (!dateValue) return null;
-    try {
-        return new Date(dateValue).toISOString();
-    } catch {
-        return dateValue;
-    }
-}
 
 module.exports = router;

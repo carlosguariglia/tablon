@@ -9,7 +9,7 @@ const anuncioRoutes = require('./routes/anuncioRoutes');
 const app = express();
 
 // Configuración básica
-app.use(cors());
+//app.use(cors());
 app.use(express.json());
 
 // Conexión a la base de datos
@@ -40,3 +40,26 @@ app.listen(PORT, () => {
   console.log(`   - Frontend: /, /login, /register, /welcome`);
   console.log(`   - API: /api/auth/register, /api/auth/login\n`);
 });
+
+
+
+// Configuración específica de CORS
+const corsOptions = {
+  origin: 'http://localhost:3000',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+  optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
+
+// Manejo de preflight para todas las rutas
+app.options('*', cors(corsOptions));
+
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, '../frontend/views'));
+
+const { formatDate, escapeHTML } = require('../frontend/views/helpers');
+
+app.locals.formatDate = formatDate;
+app.locals.escapeHTML = escapeHTML;

@@ -7,7 +7,11 @@ const pool = mariadb.createPool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT,
-  connectionLimit: 5
+  connectionLimit: 5,
+  // Opciones adicionales para mejor manejo de resultados
+  metaAsArray: true,  // Forzar metadatos como array
+  rowsAsArray: false, // Asegurar que rows sean objetos
+  dateStrings: true   // Mejor manejo de fechas
 });
 
 const connect = async () => {
