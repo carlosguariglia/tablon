@@ -4,6 +4,7 @@ const path = require('path');
 const cors = require('cors');
 const db = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
+const anuncioRoutes = require('./routes/anuncioRoutes');
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Rutas API
 app.use('/api/auth', authRoutes);
+app.use('/api/anuncios', anuncioRoutes);
 
 // Ruta SPA - Maneja todas las rutas no-API
 app.get(['/', '/login', '/register', '/welcome'], (req, res) => {

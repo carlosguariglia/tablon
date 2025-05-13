@@ -21,7 +21,14 @@ ejecutar npm install en la carpeta backend
 (instalara los modulos de node necesarios)
 
 se debe crear una base de datos y un usuario antes de usarlo.
-corriendo npm run create-db se crea la tabla en la base de datos
+
+
+
+npm run create-db se crea la tabla en la base de datos
+
+
+
+
 
 esta es la estructura del .env
 
