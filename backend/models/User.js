@@ -10,9 +10,9 @@ class User {
   }
 
   static async findByEmail(email) {
-    const sql = 'SELECT * FROM users WHERE email = ?';
-    const results = await query(sql, [email]);
-    return results[0];
+  const sql = 'SELECT * FROM users WHERE email = ?';
+  const results = await query(sql, [email]);
+  return results[0][0];
   }
 
   static async verifyPassword(plainPassword, hashedPassword) {

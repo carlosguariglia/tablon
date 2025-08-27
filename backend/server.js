@@ -25,9 +25,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/anuncios', anuncioRoutes);
 
 // Ruta SPA - Maneja todas las rutas no-API
-app.get(['/', '/login', '/register', '/welcome'], (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
-});
+//app.get(['/', '/login', '/register', '/welcome'], (req, res) => {
+//  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+//});
 
 //app.get('*', (req, res) => {
 //  res.sendFile(path.join(__dirname, '../frontend/index.html'));

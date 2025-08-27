@@ -1,30 +1,42 @@
 body {
-    font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
     margin: 0;
-    background-color: #f5f5f5;
+    background: #1f2937;
+    color: #1f2937;
 }
 
 .container {
-    text-align: center;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: #faf5ff;
+    border-radius: 20px;
+    box-shadow: 0 4px 32px rgba(88,28,135,0.12);
+    border: 1px solid #e5d9ff;
 }
 
 .btn {
     display: inline-block;
-    padding: 10px 20px;
-    background-color: #4CAF50;
-    color: white;
+    padding: 0.7rem 1.5rem;
+    background: #8b5cf6;
+    color: #fff;
     text-decoration: none;
-    border-radius: 5px;
-    font-size: 16px;
-    transition: background-color 0.3s;
+    border-radius: 10px;
+    font-size: 1.08rem;
+    font-weight: 700;
+    box-shadow: 0 2px 12px rgba(139,92,246,0.3);
+    border: none;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+    cursor: pointer;
 }
 
 .btn:hover {
-    background-color: #45a049;
+    background: #581c87;
+    box-shadow: 0 4px 24px rgba(139,92,246,0.4);
+    transform: scale(1.05);
 }
 
 /* Estilos base del contenedor */
@@ -38,75 +50,253 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
-}
-
-.btn {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    background-color: #4CAF50;
-    color: white;
-    text-decoration: none;
-    border-radius: 4px;
-    transition: background-color 0.3s;
-}
-
-.btn:hover {
-    background-color: #45a049;
-}
-
-/* Estilos para los anuncios */
-.anuncios-container {
-    margin-top: 2rem;
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.anuncio {
-    background: white;
-    border-radius: 8px;
-    padding: 1.5rem;
+    background: #fff;
+    padding: 1.2rem 2rem;
+    border-radius: 18px;
+    box-shadow: 0 2px 16px rgba(88,28,135,0.12);
     margin-bottom: 1.5rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-bottom: 2px solid #8b5cf6;
 }
 
-.anuncio h3 {
-    margin-top: 0;
-    color: #2c3e50;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 0.5rem;
+header h1 {
+    font-family: 'Montserrat', 'Inter', Arial, sans-serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #581c87;
+    letter-spacing: 1px;
+    margin: 0;
+    text-shadow: 0 2px 8px rgba(139,92,246,0.2);
 }
 
-.anuncio-meta {
-    color: #7f8c8d;
+#userHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #1f2937;
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+
+.filtros-form {
     display: flex;
     gap: 1rem;
     flex-wrap: wrap;
-    margin: 0.5rem 0;
-    font-size: 0.9rem;
+    justify-content: center;
+    align-items: center;
+    background: #e5d9ff;
+    padding: 1rem 0.5rem;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(139,92,246,0.1);
+    margin-bottom: 1.5rem;
+    font-size: 1.08rem;
+    border: 1px solid #c4b5fd;
 }
 
-.anuncio-precio {
-    font-weight: bold;
-    color: #27ae60;
+.filtros-form label {
+    color: #581c87;
+    font-weight: 600;
+    margin-right: 0.5em;
 }
 
-.anuncio-autor {
-    font-style: italic;
-    color: #3498db;
+.filtros-form input,
+.filtros-form select {
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 0.4em 0.7em;
+    border-radius: 8px;
+    border: 1px solid #c4b5fd;
+    background: #fff;
+    color: #1f2937;
+    margin-left: 0.3em;
 }
 
-.error {
-    color: #e74c3c;
+.filtros-form button {
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 0.5em 1.2em;
+    border-radius: 8px;
+    border: none;
+    background: #8b5cf6;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.filtros-form button:hover {
+    background: #581c87;
+}
+
+.calendario-container {
+    margin-top: 2rem;
+    width: 100%;
+}
+
+.calendario-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1.2rem;
+    width: 100%;
+}
+
+.calendario-dia {
+    background: #faf5ff;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(139,92,246,0.1);
+    min-height: 180px;
+    padding: 1rem 0.7rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    color: #1f2937;
+    border: 1px solid #e5d9ff;
+}
+
+.calendario-dia-header {
+    font-weight: 700;
+    color: #8b5cf6;
+    font-size: 1.15rem;
+    margin-bottom: 0.5em;
     text-align: center;
-    padding: 1rem;
+    text-shadow: 0 1px 4px rgba(139,92,246,0.2);
+}
+
+.calendario-dia-fecha {
+    font-size: 1em;
+    color: #1f2937;
+}
+
+.calendario-vacio {
+    color: #64748b;
+    font-size: 1em;
+    margin-top: 1.5em;
+    opacity: 0.7;
+}
+
+.calendario-anuncio-btn {
+    background: #8b5cf6;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 0.5em 1em;
+    margin: 0.3em 0;
+    font-size: 1.05em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100%;
+    text-align: left;
+}
+
+.calendario-anuncio-btn:hover {
+    background: #581c87;
+}
+
+.calendario-edit-btn, .calendario-delete-btn {
+    margin-top: 0.3em;
+    margin-right: 0.3em;
+    padding: 0.3em 0.8em;
+    font-size: 0.98em;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 1px 6px rgba(139,92,246,0.2);
+}
+
+.calendario-edit-btn {
+    background: #b68c44;
+    color: #fff;
+}
+
+.calendario-edit-btn:hover {
+    background: #d97706;
+}
+
+.calendario-delete-btn {
+    background: #f87171;
+    color: #fff;
+}
+
+.calendario-delete-btn:hover {
+    background: #ef4444;
+}
+
+/* Pop-up */
+.popup {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(88,28,135,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.popup-content {
+    background: #fff;
+    border-radius: 18px;
+    padding: 2rem 2.5rem;
+    box-shadow: 0 8px 32px rgba(139,92,246,0.2);
+    min-width: 320px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    color: #1f2937;
+    border: 1px solid #e5d9ff;
+}
+
+.popup-close {
+    position: absolute;
+    top: 1rem;
+    right: 1.2rem;
+    font-size: 2rem;
+    color: #8b5cf6;
+    cursor: pointer;
+    font-weight: bold;
+    text-shadow: 0 2px 8px rgba(139,92,246,0.3);
+}
+
+/* Formulario de anuncio */
+#anuncioForm, #editAnuncioForm {
+    background: #e5d9ff;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(139,92,246,0.1);
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    border: 1px solid #c4b5fd;
+}
+
+#anuncioForm input, #anuncioForm textarea, #anuncioForm select,
+#editAnuncioForm input, #editAnuncioForm textarea, #editAnuncioForm select {
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 0.5em 0.8em;
+    border-radius: 10px;
+    border: 1px solid #c4b5fd;
+    background: #fff;
+    color: #1f2937;
+    resize: vertical;
+}
+
+#anuncioForm button, #editAnuncioForm button {
+    margin-top: 0.7em;
+    align-self: flex-end;
+}
+
+#anuncioMsg, #editMsg {
+    color: #8b5cf6;
+    font-weight: 700;
+    margin-top: 0.5em;
 }
 
 /* Estados de la UI */
-.loading-state, 
-.empty-state, 
-.error-state {
+.loading-state, .empty-state, .error-state {
     text-align: center;
     margin: 2rem auto;
     padding: 2rem;
@@ -114,9 +304,9 @@ header {
 }
 
 .loading-state .spinner {
-    border: 4px solid rgba(0, 0, 0, 0.1);
+    border: 4px solid #c4b5fd;
     border-radius: 50%;
-    border-top: 4px solid #3498db;
+    border-top: 4px solid #8b5cf6;
     width: 40px;
     height: 40px;
     animation: spin 1s linear infinite;
@@ -128,110 +318,37 @@ header {
     100% { transform: rotate(360deg); }
 }
 
-.empty-state img, 
-.error-state img {
-    margin-bottom: 1rem;
-    opacity: 0.7;
-}
-
 .error-state {
-    color: #e74c3c;
+    color: #ef4444;
 }
 
-/* Estilos base */
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
+@media (max-width: 900px) {
+    .container {
+        padding: 1rem;
+    }
+    header {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+    .calendario-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.7rem;
+    }
 }
 
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-}
-
-.btn {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    background-color: #4CAF50;
-    color: white;
-    text-decoration: none;
-    border-radius: 4px;
-    transition: background-color 0.3s;
-}
-
-.btn:hover {
-    background-color: #45a049;
-}
-
-/* Estados de la UI */
-.state-message {
-    text-align: center;
-    margin: 2rem auto;
-    padding: 2rem;
-    max-width: 500px;
-}
-
-.spinner {
-    border: 4px solid rgba(0, 0, 0, 0.1);
-    border-radius: 50%;
-    border-top: 4px solid #3498db;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 1rem;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.empty-state {
-    color: #7f8c8d;
-}
-
-.error-state {
-    color: #e74c3c;
-}
-
-/* Anuncios */
-.anuncios-container {
-    margin-top: 2rem;
-}
-
-.anuncio {
-    background: white;
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.anuncio h3 {
-    margin-top: 0;
-    color: #2c3e50;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 0.5rem;
-}
-
-.anuncio-meta {
-    color: #7f8c8d;
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    margin: 0.5rem 0;
-    font-size: 0.9rem;
-}
-
-.anuncio-precio {
-    font-weight: bold;
-    color: #27ae60;
-}
-
-.anuncio-autor {
-    font-style: italic;
-    color: #3498db;
+@media (max-width: 600px) {
+    .container {
+        padding: 0.5rem;
+    }
+    header h1 {
+        font-size: 1.3rem;
+    }
+    .calendario-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    .popup-content {
+        padding: 1rem;
+    }
 }

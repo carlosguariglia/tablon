@@ -4,7 +4,7 @@ const { generateToken, verifyToken } = require('../config/jwt');
 const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
-
+ console.log('Email recibido para registro:', email);
     if (!name || !email || !password) {
       return res.status(400).json({ 
         success: false,
@@ -22,7 +22,7 @@ const register = async (req, res) => {
 
     await User.create({ name, email, password });
     const user = await User.findByEmail(email);
-    const token = generateToken({ id: user.id, email: user.email });
+    const token = generateToken({ id: user.id, name: user.name, email: user.email });
 
     res.status(201).json({ 
       success: true,
@@ -59,7 +59,7 @@ const login = async (req, res) => {
       });
     }
 
-    const token = generateToken({ id: user.id, email: user.email });
+    const token = generateToken({ id: user.id, name: user.name, email: user.email });
     res.json({ 
       success: true,
       message: 'Login exitoso',

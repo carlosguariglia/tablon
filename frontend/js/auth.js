@@ -67,7 +67,7 @@ if (document.getElementById('loginForm')) {
       if (response.ok) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        window.location.href = '/pages/welcome.html';
+        window.location.href = '/pages/tablon.html';
       } else {
         showMessage('message', data.message || 'Error al iniciar sesión');
       }
@@ -82,8 +82,10 @@ if (document.getElementById('registerForm')) {
   document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+    // Usar emailReg si existe, sino usar email
+    const email = document.getElementById('emailReg') ? document.getElementById('emailReg').value : document.getElementById('email').value;
+    // Usar passwordReg si existe, sino usar password
+    const password = document.getElementById('passwordReg') ? document.getElementById('passwordReg').value : document.getElementById('password').value;
 
     try {
       const response = await fetch(`${API_URL}/register`, {
@@ -94,15 +96,19 @@ if (document.getElementById('registerForm')) {
       
       const data = await response.json();
       if (response.ok) {
-        showMessage('message', data.message, false);
+        // Usar registerMsg si existe, sino usar message
+        const messageId = document.getElementById('registerMsg') ? 'registerMsg' : 'message';
+        showMessage(messageId, data.message, false);
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         setTimeout(() => window.location.href = '/pages/welcome.html', 1500);
       } else {
-        showMessage('message', data.message || 'Error al registrarse');
+        const messageId = document.getElementById('registerMsg') ? 'registerMsg' : 'message';
+        showMessage(messageId, data.message || 'Error al registrarse');
       }
     } catch (error) {
-      showMessage('message', 'Error de conexión');
+      const messageId = document.getElementById('registerMsg') ? 'registerMsg' : 'message';
+      showMessage(messageId, 'Error de conexión');
     }
   });
 }

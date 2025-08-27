@@ -4,134 +4,442 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tablón de Anuncios</title>
-    <link rel="stylesheet" href="../css/tablon.css">
-    <style>
-        /* Iconos de estado base64 para evitar errores 404 */
-        .empty-state::before {
-            content: "📭";
-            font-size: 4rem;
-            display: block;
-        }
-        .error-state::before {
-            content: "❌";
-            font-size: 4rem;
-            display: block;
-        }
-    </style>
+    <!-- Asegúrate que la ruta del CSS es correcta -->
+    <link rel="stylesheet" href="/css/tablon.css">
+    
 </head>
 <body>
     <div class="container">
         <header>
             <h1>Tablón de Anuncios</h1>
-            <a href="../pages/login.html" class="btn">Ir al Login</a>
+            <div id="userHeader" style="display:flex; align-items:center; gap:10px;"></div>
+            <a href="/pages/login.html" class="btn" id="loginBtn" style="display:inline-block;">Ir al Login</a>
         </header>
 
-        <div id="loadingState" class="state-message">
+        <div id="anuncioFormContainer" style="display:none;"></div>
+
+        <!-- Filtros -->
+        <form id="filtrosForm" class="filtros-form">
+            <label>
+                Desde:
+                <input type="date" id="desde" name="desde">
+            </label>
+            <label>
+                Categoría:
+                <select id="categoria" name="categoria">
+                    <option value="">Todas</option>
+                    <option value="Concierto">Concierto</option>
+                    <option value="Presentacion">Presentación</option>
+                    <option value="Anuncio">Anuncio</option>
+                    <option value="Otros">Otros</option>
+                </select>
+            </label>
+            <button type="submit" class="btn">Filtrar</button>
+            <button type="button" id="resetBtn" class="btn" style="background:#888;">Limpiar</button>
+        </form>
+
+        <div id="loadingState" class="loading-state">
             <div class="spinner"></div>
             <p>Cargando anuncios...</p>
         </div>
 
-        <div id="anunciosContainer" class="anuncios-container" style="display: none;"></div>
+        <div id="calendarioContainer" class="calendario-container"></div>
 
-        <div id="emptyState" class="state-message empty-state" style="display: none;">
-            <h3>No hay anuncios disponibles</h3>
-            <p>Actualmente no hay eventos publicados.</p>
+        <div id="errorState" class="error-state" style="display: none;">
+            <h3>Error al cargar anuncios</h3>
+            <p id="errorMessage"></p>
+            <button onclick="window.location.reload()" class="btn">Reintentar</button>
         </div>
 
-        <div id="errorState" class="state-message error-state" style="display: none;">
-            <h3>Error al cargar anuncios</h3>
-            <p id="errorMessage">Por favor intenta más tarde.</p>
-            <button onclick="window.location.reload()" class="btn">Reintentar</button>
+        <!-- Pop-up -->
+        <div id="popup" class="popup" style="display:none;">
+            <div class="popup-content">
+                <span id="popupClose" class="popup-close">&times;</span>
+                <div id="popupBody"></div>
+            </div>
+        </div>
+
+        <!-- Formulario de edición de anuncio (modal) -->
+        <div id="editModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:2000; justify-content:center; align-items:center;">
+          <div style="background:#fff; padding:24px; border-radius:8px; min-width:300px; position:relative;">
+            <span id="editModalClose" style="position:absolute; top:8px; right:12px; cursor:pointer; font-size:24px;">&times;</span>
+            <h2>Editar anuncio</h2>
+            <form id="editAnuncioForm">
+              <input type="text" id="editTitulo" name="titulo" placeholder="Título" required><br>
+              <textarea id="editDescripcion" name="descripcion" placeholder="Descripción" required></textarea><br>
+              <input type="datetime-local" id="editFecha" name="fecha" required><br>
+              <input type="text" id="editLugar" name="lugar" placeholder="Lugar" required><br>
+              <input type="number" id="editPrecio" name="precio" placeholder="Precio" min="0"><br>
+              <input type="text" id="editParticipantes" name="participantes" placeholder="Participantes"><br>
+              <select id="editCategoria" name="categoria" required>
+                <option value="Concierto">Concierto</option>
+                <option value="Presentacion">Presentación</option>
+                <option value="Anuncio">Anuncio</option>
+                <option value="Otros">Otros</option>
+              </select><br>
+              <button type="submit" class="btn">Guardar cambios</button>
+            </form>
+            <div id="editMsg"></div>
+          </div>
         </div>
     </div>
 
     <script>
-        async function cargarAnuncios() {
-            const loading = document.getElementById('loadingState');
-            const container = document.getElementById('anunciosContainer');
-            const emptyState = document.getElementById('emptyState');
-            const errorState = document.getElementById('errorState');
+        // Función para mostrar los anuncios en formato calendario según rango seleccionado
+        function displayCalendario(anuncios, desdeStr) {
+            // Convertir yyyy-mm-dd a Date
+            let desde;
+            if (desdeStr && /^\d{4}-\d{2}-\d{2}$/.test(desdeStr)) {
+                const [yyyy, mm, dd] = desdeStr.split('-');
+                desde = new Date(`${yyyy}-${mm}-${dd}T00:00:00`);
+            } else {
+                desde = new Date();
+            }
+            desde.setHours(0,0,0,0);
 
-            // Mostrar estado de carga
-            loading.style.display = 'block';
-            container.style.display = 'none';
-            emptyState.style.display = 'none';
-            errorState.style.display = 'none';
-
-            try {
-                const response = await fetch('/api/anuncios');
-                
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.error || `Error HTTP: ${response.status}`);
-                }
-
-                const anuncios = await response.json();
-                console.log('Anuncios recibidos:', anuncios);
-
-                // Ocultar carga
-                loading.style.display = 'none';
-
-                if (!anuncios || anuncios.length === 0) {
-                    emptyState.style.display = 'block';
-                    return;
-                }
-
-                // Mostrar anuncios
-                container.innerHTML = '';
-                anuncios.forEach(anuncio => {
-                    const anuncioHTML = `
-                        <div class="anuncio">
-                            <h3>${escapeHTML(anuncio.titulo)}</h3>
-                            <div class="anuncio-meta">
-                                <span>📅 ${formatDate(anuncio.fecha)}</span>
-                                <span>📍 ${escapeHTML(anuncio.lugar)}</span>
-                                <span class="anuncio-precio">${anuncio.precio ? `$${anuncio.precio.toFixed(2)}` : 'Gratis'}</span>
-                                ${anuncio.autor ? `<span class="anuncio-autor">👤 ${escapeHTML(anuncio.autor)}</span>` : ''}
-                            </div>
-                            <p>${escapeHTML(anuncio.descripcion || '')}</p>
-                            ${anuncio.participantes ? `<p><strong>Participantes:</strong> ${escapeHTML(anuncio.participantes)}</p>` : ''}
-                            <span class="categoria">🏷️ ${escapeHTML(anuncio.categoria)}</span>
-                        </div>
-                    `;
-                    container.insertAdjacentHTML('beforeend', anuncioHTML);
+            const diasSemana = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+            let dias = [];
+            for(let i=0; i<7; i++) {
+                const d = new Date(desde.getTime() + i*24*60*60*1000);
+                dias.push({
+                    fecha: new Date(d),
+                    nombre: diasSemana[d.getDay()],
+                    anuncios: []
                 });
+            }
 
-                container.style.display = 'block';
+            // Agrupar anuncios por día (comparar solo año, mes y día)
+            anuncios.forEach(anuncio => {
+                const fechaAnuncio = new Date(anuncio.fecha);
+                dias.forEach(dia => {
+                    if (
+                        fechaAnuncio.getFullYear() === dia.fecha.getFullYear() &&
+                        fechaAnuncio.getMonth() === dia.fecha.getMonth() &&
+                        fechaAnuncio.getDate() === dia.fecha.getDate()
+                    ) {
+                        dia.anuncios.push(anuncio);
+                    }
+                });
+            });
 
+            // Limpiar el contenedor antes de crear la cuadrícula
+            const container = document.getElementById('calendarioContainer');
+            container.innerHTML = '';
+            const grid = document.createElement('div');
+            grid.className = 'calendario-grid';
+            const user = JSON.parse(localStorage.getItem('user'));
+            dias.forEach(dia => {
+                const col = document.createElement('div');
+                col.className = 'calendario-dia';
+                // Formato argentino: dd-mm-yy
+                const yy = String(dia.fecha.getFullYear()).slice(-2);
+                const fechaArg = `${String(dia.fecha.getDate()).padStart(2,'0')}-${String(dia.fecha.getMonth()+1).padStart(2,'0')}-${yy}`;
+                col.innerHTML = `<div class="calendario-dia-header">${dia.nombre}<br><span class="calendario-dia-fecha">${fechaArg}</span></div>`;
+                if(dia.anuncios.length === 0) {
+                    col.innerHTML += `<div class="calendario-vacio">Sin eventos</div>`;
+                } else {
+                    dia.anuncios.forEach(anuncio => {
+                        const btn = document.createElement('button');
+                        btn.className = 'calendario-anuncio-btn';
+                        btn.textContent = anuncio.titulo;
+                        btn.onclick = () => mostrarPopup(anuncio);
+                        col.appendChild(btn);
+                        // Mostrar botones solo si el usuario es el autor o admin
+                        if (user && (anuncio.autor === user.name || (user.name === 'admin' && user.email === 'admin@gmail.com'))) {
+                            const editBtn = document.createElement('button');
+                            editBtn.textContent = 'Editar';
+                            editBtn.className = 'calendario-edit-btn';
+                            editBtn.onclick = () => editarAnuncio(anuncio);
+                            col.appendChild(editBtn);
+                            const deleteBtn = document.createElement('button');
+                            deleteBtn.textContent = 'Eliminar';
+                            deleteBtn.className = 'calendario-delete-btn';
+                            deleteBtn.onclick = () => eliminarAnuncio(anuncio);
+                            col.appendChild(deleteBtn);
+                        }
+                    });
+                }
+                grid.appendChild(col);
+            });
+            container.appendChild(grid);
+        }
+
+        // Función para formatear fechas en formato argentino (dd-mm-yy hh:mm)
+        function formatDate(dateString) {
+            if (!dateString) return 'Fecha no especificada';
+            const date = new Date(dateString);
+            const dd = String(date.getDate()).padStart(2, '0');
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const yy = String(date.getFullYear()).slice(-2);
+            const hh = String(date.getHours()).padStart(2, '0');
+            const min = String(date.getMinutes()).padStart(2, '0');
+            return `${dd}-${mm}-${yy} ${hh}:${min}`;
+        }
+
+        // Pop-up para mostrar info completa
+        function mostrarPopup(anuncio) {
+            const popup = document.getElementById('popup');
+            const body = document.getElementById('popupBody');
+            body.innerHTML = `
+                <h2>${anuncio.titulo}</h2>
+                <p><strong>Fecha:</strong> ${formatDate(anuncio.fecha)}</p>
+                <p><strong>Lugar:</strong> ${anuncio.lugar}</p>
+                <p><strong>Descripción:</strong> ${anuncio.descripcion}</p>
+                ${anuncio.participantes ? `<p><strong>Participantes:</strong> ${anuncio.participantes}</p>` : ''}
+                <p><strong>Categoría:</strong> ${anuncio.categoria}</p>
+                <p><strong>Precio:</strong> ${anuncio.precio !== null ? `$${anuncio.precio.toFixed(2)}` : 'Gratis'}</p>
+                <p><strong>Autor:</strong> ${anuncio.autor}</p>
+            `;
+            popup.style.display = 'flex';
+        }
+        document.getElementById('popupClose').onclick = function() {
+            document.getElementById('popup').style.display = 'none';
+        };
+
+        // Función para obtener anuncios con filtros
+        async function fetchAnuncios(params = {}) {
+            let url = '/api/anuncios';
+            // Ya viene en formato yyyy-mm-dd desde el input type=date
+            const query = Object.entries(params)
+                .filter(([_, v]) => v)
+                .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+                .join('&');
+            if (query) url += `?${query}`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`Error: ${response.status}`);
+                const anuncios = await response.json();
+                console.log('Anuncios recibidos:', anuncios); // Log para debug
+                // Usar la fecha de inicio actual para mostrar los próximos 7 días
+                const desde = document.getElementById('desde').value;
+                displayCalendario(anuncios, desde);
             } catch (error) {
-                console.error('Error al cargar anuncios:', error);
-                loading.style.display = 'none';
-                errorState.style.display = 'block';
-                document.getElementById('errorMessage').textContent = 
-                    error.message || 'Error al conectar con el servidor';
+                console.error('Error:', error);
+                document.getElementById('errorState').style.display = 'block';
+                document.getElementById('errorMessage').textContent = 'Error al cargar los anuncios. Por favor recarga la página.';
+            } finally {
+                document.getElementById('loadingState').style.display = 'none';
             }
         }
 
-        function formatDate(dateString) {
-            const options = { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit', 
-                minute: '2-digit'
+        // Mostrar nombre del usuario logueado y formulario de anuncios
+        function renderUserInfoAndForm() {
+            const userHeaderDiv = document.getElementById('userHeader');
+            const anuncioFormContainer = document.getElementById('anuncioFormContainer');
+            const loginBtn = document.getElementById('loginBtn');
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user) {
+                userHeaderDiv.innerHTML = `
+                    <span> &#127900 <strong>${user.name}</strong></span>
+                    <button id="showAnuncioFormBtn" class="btn">Crear anuncio</button>
+                    <button id="logoutBtn" class="btn">Cerrar sesión</button>
+                `;
+                if (loginBtn) loginBtn.style.display = 'none';
+                anuncioFormContainer.style.display = 'none';
+                // Asignar evento al botón después de renderizarlo
+                document.getElementById('showAnuncioFormBtn').onclick = function() {
+                    anuncioFormContainer.style.display = 'block';
+                    document.getElementById('showAnuncioFormBtn').style.display = 'none';
+                };
+                document.getElementById('logoutBtn').onclick = function() {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.href = '/pages/login.html';
+                };
+                // Asignar evento al formulario de creación
+                anuncioFormContainer.innerHTML = `
+                    <h2>Crear anuncio</h2>
+                    <form id="anuncioForm">
+                        <input type="text" id="titulo" name="titulo" placeholder="Título" required><br>
+                        <textarea id="descripcion" name="descripcion" placeholder="Descripción" required></textarea><br>
+                        <input type="datetime-local" id="fecha" name="fecha" required><br>
+                        <input type="text" id="lugar" name="lugar" placeholder="Lugar" required><br>
+                        <input type="number" id="precio" name="precio" placeholder="Precio" min="0"><br>
+                        <input type="text" id="participantes" name="participantes" placeholder="Participantes"><br>
+                        <select id="categoria" name="categoria" required>
+                            <option value="Concierto">Concierto</option>
+                            <option value="Presentacion">Presentación</option>
+                            <option value="Anuncio">Anuncio</option>
+                            <option value="Otros">Otros</option>
+                        </select><br>
+                        <button type="submit" class="btn">Publicar anuncio</button>
+                    </form>
+                    <div id="anuncioMsg"></div>
+                `;
+                document.getElementById('anuncioForm').onsubmit = async function(e) {
+                    e.preventDefault();
+                    const token = localStorage.getItem('token');
+                    const data = {
+                        titulo: document.getElementById('titulo').value,
+                        descripcion: document.getElementById('descripcion').value,
+                        fecha: document.getElementById('fecha').value,
+                        lugar: document.getElementById('lugar').value,
+                        precio: document.getElementById('precio').value,
+                        categoria: document.getElementById('categoria').value,
+                        participantes: document.getElementById('participantes').value
+                    };
+                    try {
+                        const res = await fetch('/api/anuncios', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify(data)
+                        });
+                        if (!res.ok) throw new Error(`Error: ${res.status}`);
+                        const nuevoAnuncio = await res.json();
+                        console.log('Anuncio creado:', nuevoAnuncio);
+                        document.getElementById('anuncioMsg').textContent = 'Anuncio publicado con éxito.';
+                        document.getElementById('anuncioForm').reset();
+                        // Volver a cargar los anuncios
+                        fetchAnuncios({ desde: document.getElementById('desde').value });
+                    } catch (error) {
+                        console.error('Error al crear anuncio:', error);
+                        document.getElementById('anuncioMsg').textContent = 'Error al publicar el anuncio.';
+                    }
+                };
+            } else {
+                userHeaderDiv.innerHTML = '';
+                if (loginBtn) loginBtn.style.display = 'inline-block';
+                anuncioFormContainer.style.display = 'none';
+            }
+        }
+
+        // Función para editar un anuncio
+        let anuncioEditandoId = null;
+        function editarAnuncio(anuncio) {
+            anuncioEditandoId = anuncio.id;
+            // Mostrar modal y rellenar datos
+            const modal = document.getElementById('editModal');
+            modal.style.display = 'flex';
+            document.getElementById('editTitulo').value = anuncio.titulo;
+            document.getElementById('editDescripcion').value = anuncio.descripcion;
+            // Formatear fecha para input datetime-local
+            if (anuncio.fecha) {
+                const d = new Date(anuncio.fecha);
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                const hh = String(d.getHours()).padStart(2, '0');
+                const min = String(d.getMinutes()).padStart(2, '0');
+                document.getElementById('editFecha').value = `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+            } else {
+                document.getElementById('editFecha').value = '';
+            }
+            document.getElementById('editLugar').value = anuncio.lugar;
+            document.getElementById('editPrecio').value = anuncio.precio || '';
+            document.getElementById('editCategoria').value = anuncio.categoria;
+            document.getElementById('editParticipantes').value = anuncio.participantes || '';
+            document.getElementById('editMsg').textContent = '';
+            // Cerrar modal
+            document.getElementById('editModalClose').onclick = () => {
+                modal.style.display = 'none';
             };
-            return new Date(dateString).toLocaleDateString('es-ES', options);
+            // Enviar edición
+            document.getElementById('editAnuncioForm').onsubmit = async function(e) {
+                e.preventDefault();
+                const token = localStorage.getItem('token');
+                const user = JSON.parse(localStorage.getItem('user'));
+                const data = {
+                    titulo: document.getElementById('editTitulo').value,
+                    descripcion: document.getElementById('editDescripcion').value,
+                    fecha: document.getElementById('editFecha').value,
+                    lugar: document.getElementById('editLugar').value,
+                    precio: document.getElementById('editPrecio').value,
+                    categoria: document.getElementById('editCategoria').value,
+                    participantes: document.getElementById('editParticipantes').value
+                };
+                let body = data;
+                if (user && user.name === 'admin' && user.email === 'admin@gmail.com') {
+                    body.name = user.name;
+                    body.email = user.email;
+                }
+                try {
+                    const res = await fetch(`/api/anuncios/${anuncioEditandoId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(body)
+                    });
+                    const result = await res.json();
+                    if (res.ok) {
+                        document.getElementById('editMsg').textContent = 'Anuncio editado correctamente.';
+                        setTimeout(() => {
+                            modal.style.display = 'none';
+                            fetchAnuncios();
+                        }, 1200);
+                    } else {
+                        document.getElementById('editMsg').textContent = result.message || 'Error al editar el anuncio.';
+                    }
+                } catch (err) {
+                    document.getElementById('editMsg').textContent = 'Error de conexión.';
+                }
+            };
         }
 
-        function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, 
-                tag => ({
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    "'": '&#39;',
-                    '"': '&quot;'
-                }[tag]));
+        document.getElementById('editModalClose').onclick = function() {
+            document.getElementById('editModal').style.display = 'none';
+        };
+
+        // Función para eliminar un anuncio
+        async function eliminarAnuncio(anuncio) {
+            if (confirm('¿Seguro que quieres eliminar este anuncio?')) {
+                const token = localStorage.getItem('token');
+                const user = JSON.parse(localStorage.getItem('user'));
+                let body = {};
+                // Si el usuario es admin, enviar también nombre y email
+                if (user && user.name === 'admin' && user.email === 'admin@gmail.com') {
+                    body.name = user.name;
+                    body.email = user.email;
+                }
+                fetch(`/api/anuncios/${anuncio.id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(body)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message);
+                    fetchAnuncios();
+                })
+                .catch(() => alert('Error al eliminar el anuncio.'));
+            }
         }
 
-        // Iniciar cuando la página cargue
-        document.addEventListener('DOMContentLoaded', cargarAnuncios);
+        document.addEventListener('DOMContentLoaded', () => {
+            const hoy = new Date();
+            const yyyy = hoy.getFullYear();
+            const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+            const dd = String(hoy.getDate()).padStart(2, '0');
+            const hoyStr = `${yyyy}-${mm}-${dd}`;
+            document.getElementById('desde').value = hoyStr;
+            fetchAnuncios({ desde: hoyStr });
+            renderUserInfoAndForm();
+        });
+
+        document.getElementById('filtrosForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const desde = document.getElementById('desde').value;
+            const categoria = document.getElementById('categoria').value;
+            fetchAnuncios({ desde, categoria });
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            const hoy = new Date();
+            const yyyy = hoy.getFullYear();
+            const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+            const dd = String(hoy.getDate()).padStart(2, '0');
+            const hoyStr = `${yyyy}-${mm}-${dd}`;
+            document.getElementById('desde').value = hoyStr;
+            document.getElementById('categoria').value = '';
+            fetchAnuncios({ desde: hoyStr });
+        });
     </script>
 </body>
 </html>

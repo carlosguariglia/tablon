@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tablón de Anuncios</title>
+    <link rel="stylesheet" href="/css/tablon.css">
+    <style>
+        .anuncio {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .anuncio h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+        .anuncio-meta {
+            color: #7f8c8d;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+        .anuncio-precio {
+            font-weight: bold;
+            color: #27ae60;
+        }
+        .anuncio-autor {
+            font-style: italic;
+            color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Tablón de Anuncios</h1>
+            <a href="/login" class="btn">Ir al Login</a>
+        </header>
+
+        <% if (anuncios.length === 0) { %>
+            <div class="empty-state">
+                <p>No hay anuncios disponibles actualmente.</p>
+            </div>
+        <% } %>
+
+        <div class="anuncios-container">
+            <% anuncios.forEach(anuncio => { %>
+                <div class="anuncio">
+                    <h3><%= anuncio.titulo %></h3>
+                    <div class="anuncio-meta">
+                        <span>📅 <%= formatDate(anuncio.fecha) %></span>
+                        <span>📍 <%= anuncio.lugar %></span>
+                        <span class="anuncio-precio">
+                            <%= anuncio.precio !== null ? `$${anuncio.precio.toFixed(2)}` : 'Gratis' %>
+                        </span>
+                        <span class="anuncio-autor">👤 <%= anuncio.autor %></span>
+                    </div>
+                    <p><%= anuncio.descripcion %></p>
+                    <% if (anuncio.participantes) { %>
+                        <p><strong>Participantes:</strong> <%= anuncio.participantes %></p>
+                    <% } %>
+                    <span class="categoria">🏷️ <%= anuncio.categoria %></span>
+                </div>
+            <% }); %>
+        </div>
+    </div>
+
+    <script>
+        // Función para formatear fechas en el cliente (como respaldo)
+        function formatDate(dateString) {
+            if (!dateString) return 'Fecha no especificada';
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit', 
+                minute: '2-digit'
+            };
+            return new Date(dateString).toLocaleDateString('es-ES', options);
+        }
+    </script>
+</body>
+</html>
