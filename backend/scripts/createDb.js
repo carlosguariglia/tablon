@@ -37,6 +37,21 @@ async function createDatabase() {
     `);
     console.log('✅ Tabla anuncios creada exitosamente');
 
+    // Crear tabla de auditoría
+    await query(`
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT,
+        user_name VARCHAR(100),
+        user_email VARCHAR(100),
+        action VARCHAR(50) NOT NULL,
+        details TEXT,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+      )
+    `);
+    console.log('✅ Tabla audit_logs creada exitosamente');
+
     process.exit(0);
   } catch (error) {
     console.error('❌ Error al crear las tablas:', error);

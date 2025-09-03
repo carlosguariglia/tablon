@@ -23,6 +23,8 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 // Rutas API
 app.use('/api/auth', authRoutes);
 app.use('/api/anuncios', anuncioRoutes);
+const auditRoutes = require('./routes/auditRoutes');
+app.use('/api/audit', auditRoutes);
 
 // Ruta SPA - Maneja todas las rutas no-API
 //app.get(['/', '/login', '/register', '/welcome'], (req, res) => {
@@ -56,10 +58,3 @@ app.use(cors(corsOptions));
 // Manejo de preflight para todas las rutas
 app.options('*', cors(corsOptions));
 
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, '../frontend/views'));
-
-const { formatDate, escapeHTML } = require('../frontend/views/helpers');
-
-app.locals.formatDate = formatDate;
-app.locals.escapeHTML = escapeHTML;

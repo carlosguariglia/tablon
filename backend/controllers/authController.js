@@ -60,6 +60,14 @@ const login = async (req, res) => {
     }
 
     const token = generateToken({ id: user.id, name: user.name, email: user.email });
+
+    // Registrar acción de login en auditoría
+    try {
+      const { logAction } = require('./auditController');
+      // Simular req.user para logAction
+      await logAction({ user: { id: user.id, name: user.name, email: user.email } }, 'LOGIN', `Email: ${email}`);
+    } catch (e) { /* Ignorar errores de log */ }
+
     res.json({ 
       success: true,
       message: 'Login exitoso',

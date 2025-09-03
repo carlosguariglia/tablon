@@ -124,19 +124,31 @@
 
             // Limpiar el contenedor antes de crear la cuadrícula
             const container = document.getElementById('calendarioContainer');
-            container.innerHTML = '';
+            while (container.firstChild) container.removeChild(container.firstChild);
             const grid = document.createElement('div');
             grid.className = 'calendario-grid';
             const user = JSON.parse(localStorage.getItem('user'));
             dias.forEach(dia => {
                 const col = document.createElement('div');
                 col.className = 'calendario-dia';
-                // Formato argentino: dd-mm-yy
+                // Header del día
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'calendario-dia-header';
+                headerDiv.appendChild(document.createTextNode(dia.nombre));
+                headerDiv.appendChild(document.createElement('br'));
+                const fechaSpan = document.createElement('span');
+                fechaSpan.className = 'calendario-dia-fecha';
                 const yy = String(dia.fecha.getFullYear()).slice(-2);
                 const fechaArg = `${String(dia.fecha.getDate()).padStart(2,'0')}-${String(dia.fecha.getMonth()+1).padStart(2,'0')}-${yy}`;
-                col.innerHTML = `<div class="calendario-dia-header">${dia.nombre}<br><span class="calendario-dia-fecha">${fechaArg}</span></div>`;
+                fechaSpan.textContent = fechaArg;
+                headerDiv.appendChild(fechaSpan);
+                col.appendChild(headerDiv);
+                // Eventos o vacío
                 if(dia.anuncios.length === 0) {
-                    col.innerHTML += `<div class="calendario-vacio">Sin eventos</div>`;
+                    const vacioDiv = document.createElement('div');
+                    vacioDiv.className = 'calendario-vacio';
+                    vacioDiv.textContent = 'Sin eventos';
+                    col.appendChild(vacioDiv);
                 } else {
                     dia.anuncios.forEach(anuncio => {
                         const btn = document.createElement('button');
@@ -180,16 +192,49 @@
         function mostrarPopup(anuncio) {
             const popup = document.getElementById('popup');
             const body = document.getElementById('popupBody');
-            body.innerHTML = `
-                <h2>${anuncio.titulo}</h2>
-                <p><strong>Fecha:</strong> ${formatDate(anuncio.fecha)}</p>
-                <p><strong>Lugar:</strong> ${anuncio.lugar}</p>
-                <p><strong>Descripción:</strong> ${anuncio.descripcion}</p>
-                ${anuncio.participantes ? `<p><strong>Participantes:</strong> ${anuncio.participantes}</p>` : ''}
-                <p><strong>Categoría:</strong> ${anuncio.categoria}</p>
-                <p><strong>Precio:</strong> ${anuncio.precio !== null ? `$${anuncio.precio.toFixed(2)}` : 'Gratis'}</p>
-                <p><strong>Autor:</strong> ${anuncio.autor}</p>
-            `;
+            // Limpiar contenido previo
+            while (body.firstChild) body.removeChild(body.firstChild);
+
+            const h2 = document.createElement('h2');
+            h2.textContent = anuncio.titulo;
+            body.appendChild(h2);
+
+            const fechaP = document.createElement('p');
+            fechaP.innerHTML = '<strong>Fecha:</strong> ' + formatDate(anuncio.fecha);
+            body.appendChild(fechaP);
+
+            const lugarP = document.createElement('p');
+            lugarP.innerHTML = '<strong>Lugar:</strong> ';
+            lugarP.appendChild(document.createTextNode(anuncio.lugar));
+            body.appendChild(lugarP);
+
+            const descP = document.createElement('p');
+            descP.innerHTML = '<strong>Descripción:</strong> ';
+            descP.appendChild(document.createTextNode(anuncio.descripcion));
+            body.appendChild(descP);
+
+            if (anuncio.participantes) {
+                const partP = document.createElement('p');
+                partP.innerHTML = '<strong>Participantes:</strong> ';
+                partP.appendChild(document.createTextNode(anuncio.participantes));
+                body.appendChild(partP);
+            }
+
+            const catP = document.createElement('p');
+            catP.innerHTML = '<strong>Categoría:</strong> ';
+            catP.appendChild(document.createTextNode(anuncio.categoria));
+            body.appendChild(catP);
+
+            const precioP = document.createElement('p');
+            precioP.innerHTML = '<strong>Precio:</strong> ';
+            precioP.appendChild(document.createTextNode(anuncio.precio !== null ? `$${anuncio.precio.toFixed(2)}` : 'Gratis'));
+            body.appendChild(precioP);
+
+            const autorP = document.createElement('p');
+            autorP.innerHTML = '<strong>Autor:</strong> ';
+            autorP.appendChild(document.createTextNode(anuncio.autor));
+            body.appendChild(autorP);
+
             popup.style.display = 'flex';
         }
         document.getElementById('popupClose').onclick = function() {
@@ -228,55 +273,177 @@
             const anuncioFormContainer = document.getElementById('anuncioFormContainer');
             const loginBtn = document.getElementById('loginBtn');
             const user = JSON.parse(localStorage.getItem('user'));
+            // Limpiar header y formulario
+            while (userHeaderDiv.firstChild) userHeaderDiv.removeChild(userHeaderDiv.firstChild);
+            while (anuncioFormContainer.firstChild) anuncioFormContainer.removeChild(anuncioFormContainer.firstChild);
             if (user) {
-                userHeaderDiv.innerHTML = `
-                    <span> &#127900 <strong>${user.name}</strong></span>
-                    <button id="showAnuncioFormBtn" class="btn">Crear anuncio</button>
-                    <button id="logoutBtn" class="btn">Cerrar sesión</button>
-                `;
+                // Header usuario con imagen
+                const span = document.createElement('span');
+                const img = document.createElement('img');
+                img.src = '/Media/corchea.png';
+                img.alt = 'Usuario';
+                img.style.width = '28px';
+                img.style.height = '28px';
+                img.style.verticalAlign = 'middle';
+                img.style.marginRight = '8px';
+                span.appendChild(img);
+                const strong = document.createElement('strong');
+                strong.textContent = user.name;
+                span.appendChild(strong);
+                userHeaderDiv.appendChild(span);
+
+                const showBtn = document.createElement('button');
+                showBtn.id = 'showAnuncioFormBtn';
+                showBtn.className = 'btn';
+                showBtn.textContent = 'Crear anuncio';
+                userHeaderDiv.appendChild(showBtn);
+
+                // Botón auditoría solo para admin
+                if (user.name === 'admin' && user.email === 'admin@gmail.com') {
+                    const auditBtn = document.createElement('button');
+                    auditBtn.className = 'btn';
+                    auditBtn.textContent = 'Ver auditoría';
+                    auditBtn.onclick = function() {
+                        window.location.href = '/pages/audit.html';
+                    };
+                    userHeaderDiv.appendChild(auditBtn);
+                }
+
+                const logoutBtn = document.createElement('button');
+                logoutBtn.id = 'logoutBtn';
+                logoutBtn.className = 'btn';
+                logoutBtn.textContent = 'Cerrar sesión';
+                userHeaderDiv.appendChild(logoutBtn);
+
                 if (loginBtn) loginBtn.style.display = 'none';
                 anuncioFormContainer.style.display = 'none';
-                // Asignar evento al botón después de renderizarlo
-                document.getElementById('showAnuncioFormBtn').onclick = function() {
+
+                showBtn.onclick = function() {
                     anuncioFormContainer.style.display = 'block';
-                    document.getElementById('showAnuncioFormBtn').style.display = 'none';
+                    showBtn.style.display = 'none';
                 };
-                document.getElementById('logoutBtn').onclick = function() {
+                logoutBtn.onclick = function() {
                     localStorage.removeItem('token');
                     localStorage.removeItem('user');
                     window.location.href = '/pages/login.html';
                 };
-                // Asignar evento al formulario de creación
-                anuncioFormContainer.innerHTML = `
-                    <h2>Crear anuncio</h2>
-                    <form id="anuncioForm">
-                        <input type="text" id="titulo" name="titulo" placeholder="Título" required><br>
-                        <textarea id="descripcion" name="descripcion" placeholder="Descripción" required></textarea><br>
-                        <input type="datetime-local" id="fecha" name="fecha" required><br>
-                        <input type="text" id="lugar" name="lugar" placeholder="Lugar" required><br>
-                        <input type="number" id="precio" name="precio" placeholder="Precio" min="0"><br>
-                        <input type="text" id="participantes" name="participantes" placeholder="Participantes"><br>
-                        <select id="categoria" name="categoria" required>
-                            <option value="Concierto">Concierto</option>
-                            <option value="Presentacion">Presentación</option>
-                            <option value="Anuncio">Anuncio</option>
-                            <option value="Otros">Otros</option>
-                        </select><br>
-                        <button type="submit" class="btn">Publicar anuncio</button>
-                    </form>
-                    <div id="anuncioMsg"></div>
-                `;
-                document.getElementById('anuncioForm').onsubmit = async function(e) {
+
+                // Formulario de creación
+                const h2 = document.createElement('h2');
+                h2.textContent = 'Crear anuncio';
+                anuncioFormContainer.appendChild(h2);
+
+                const form = document.createElement('form');
+                form.id = 'anuncioForm';
+
+                const titulo = document.createElement('input');
+                titulo.type = 'text';
+                titulo.id = 'titulo';
+                titulo.name = 'titulo';
+                    titulo.placeholder = 'Título';
+                    titulo.title = 'Título';
+                titulo.required = true;
+                form.appendChild(titulo);
+                form.appendChild(document.createElement('br'));
+
+                const descripcion = document.createElement('textarea');
+                descripcion.id = 'descripcion';
+                descripcion.name = 'descripcion';
+                descripcion.placeholder = 'Descripción';
+                descripcion.title = 'Descripción';
+                descripcion.required = true;
+                form.appendChild(descripcion);
+                form.appendChild(document.createElement('br'));
+
+                const fecha = document.createElement('input');
+                fecha.type = 'datetime-local';
+                fecha.id = 'fecha';
+                fecha.name = 'fecha';
+                fecha.title = 'Fecha y hora';
+                fecha.required = true;
+                form.appendChild(fecha);
+                form.appendChild(document.createElement('br'));
+
+                const lugar = document.createElement('input');
+                lugar.type = 'text';
+                lugar.id = 'lugar';
+                lugar.name = 'lugar';
+                lugar.placeholder = 'Lugar';
+                lugar.title = 'Lugar';
+                lugar.required = true;
+                form.appendChild(lugar);
+                form.appendChild(document.createElement('br'));
+
+                const precio = document.createElement('input');
+                precio.type = 'number';
+                precio.id = 'precio';
+                precio.name = 'precio';
+                precio.placeholder = 'Precio';
+                precio.title = 'Precio';
+                precio.min = '0';
+                form.appendChild(precio);
+                form.appendChild(document.createElement('br'));
+
+                const participantes = document.createElement('input');
+                participantes.type = 'text';
+                participantes.id = 'participantes';
+                participantes.name = 'participantes';
+                participantes.placeholder = 'Participantes';
+                participantes.title = 'Participantes';
+                form.appendChild(participantes);
+                form.appendChild(document.createElement('br'));
+
+                const categoria = document.createElement('select');
+                categoria.id = 'categoria';
+                categoria.name = 'categoria';
+                categoria.required = true;
+                const opciones = ['Concierto','Presentacion','Anuncio','Otros'];
+                opciones.forEach(op => {
+                    const option = document.createElement('option');
+                    option.value = op;
+                    option.textContent = op;
+                    categoria.appendChild(option);
+                });
+                form.appendChild(categoria);
+                form.appendChild(document.createElement('br'));
+
+                const submitBtn = document.createElement('button');
+                submitBtn.type = 'submit';
+                submitBtn.className = 'btn';
+                submitBtn.textContent = 'Publicar anuncio';
+                form.appendChild(submitBtn);
+
+                // Botón cancelar
+                const cancelBtn = document.createElement('button');
+                cancelBtn.type = 'button';
+                cancelBtn.className = 'btn';
+                cancelBtn.textContent = 'Cerrar formulario';
+                cancelBtn.style.marginLeft = '10px';
+                form.appendChild(cancelBtn);
+
+                anuncioFormContainer.appendChild(form);
+
+                const anuncioMsg = document.createElement('div');
+                anuncioMsg.id = 'anuncioMsg';
+                anuncioFormContainer.appendChild(anuncioMsg);
+
+                // Evento cancelar
+                cancelBtn.onclick = function() {
+                    anuncioFormContainer.style.display = 'none';
+                    document.getElementById('showAnuncioFormBtn').style.display = 'inline-block';
+                };
+
+                form.onsubmit = async function(e) {
                     e.preventDefault();
                     const token = localStorage.getItem('token');
                     const data = {
-                        titulo: document.getElementById('titulo').value,
-                        descripcion: document.getElementById('descripcion').value,
-                        fecha: document.getElementById('fecha').value,
-                        lugar: document.getElementById('lugar').value,
-                        precio: document.getElementById('precio').value,
-                        categoria: document.getElementById('categoria').value,
-                        participantes: document.getElementById('participantes').value
+                        titulo: titulo.value,
+                        descripcion: descripcion.value,
+                        fecha: fecha.value,
+                        lugar: lugar.value,
+                        precio: precio.value,
+                        categoria: categoria.value,
+                        participantes: participantes.value
                     };
                     try {
                         const res = await fetch('/api/anuncios', {
@@ -290,16 +457,19 @@
                         if (!res.ok) throw new Error(`Error: ${res.status}`);
                         const nuevoAnuncio = await res.json();
                         console.log('Anuncio creado:', nuevoAnuncio);
-                        document.getElementById('anuncioMsg').textContent = 'Anuncio publicado con éxito.';
-                        document.getElementById('anuncioForm').reset();
+                        anuncioMsg.textContent = 'Anuncio publicado con éxito.';
+                        form.reset();
+                        anuncioFormContainer.style.display = 'none';
+                        document.getElementById('showAnuncioFormBtn').style.display = 'inline-block';
                         // Volver a cargar los anuncios
                         fetchAnuncios({ desde: document.getElementById('desde').value });
                     } catch (error) {
                         console.error('Error al crear anuncio:', error);
-                        document.getElementById('anuncioMsg').textContent = 'Error al publicar el anuncio.';
+                        anuncioMsg.textContent = 'Error al publicar el anuncio.';
                     }
                 };
             } else {
+                // ...existing code...
                 userHeaderDiv.innerHTML = '';
                 if (loginBtn) loginBtn.style.display = 'inline-block';
                 anuncioFormContainer.style.display = 'none';

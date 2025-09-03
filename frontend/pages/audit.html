@@ -1,0 +1,50 @@
+<!-- Panel de auditoría solo visible para admin -->
+<div id="auditPanel" style="display:none; margin:32px 0;">
+  <h2>Auditoría de acciones</h2>
+  <table id="auditTable" border="1" style="width:100%; border-collapse:collapse;">
+    <thead>
+      <tr>
+        <th>Usuario</th>
+        <th>Email</th>
+        <th>Acción</th>
+        <th>Detalles</th>
+        <th>Fecha</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+<script>
+// Mostrar panel solo si el usuario es admin
+function showAuditPanelIfAdmin() {
+  const user = JSON.parse(localStorage.getItem('user'));
+  if (user && user.name === 'admin' && user.email === 'admin@gmail.com') {
+    document.getElementById('auditPanel').style.display = 'block';
+    fetchAuditLogs();
+  }
+}
+
+async function fetchAuditLogs() {
+  const token = localStorage.getItem('token');
+  const res = await fetch('/api/audit', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!res.ok) return;
+  const logs = await res.json();
+  const tbody = document.querySelector('#auditTable tbody');
+  tbody.innerHTML = '';
+  logs.forEach(log => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${log.user_name}</td>
+      <td>${log.user_email}</td>
+      <td>${log.action}</td>
+      <td>${log.details || ''}</td>
+      <td>${new Date(log.timestamp).toLocaleString()}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', showAuditPanelIfAdmin);
+</script>

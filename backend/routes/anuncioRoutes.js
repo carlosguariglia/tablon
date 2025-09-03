@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 const { protect } = require('../middlewares/authMiddleware');
+const { logAction } = require('../controllers/auditController');
 
 
 
@@ -115,6 +116,7 @@ router.post('/', protect, async (req, res) => {
         }
         const sql = `INSERT INTO anuncios (titulo, descripcion, fecha, lugar, precio, categoria, participantes, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`;
         await db.query(sql, [titulo, descripcion, fecha, lugar, precio || 0, categoria, participantes, userId]);
+        await logAction(req, 'CREAR_ANUNCIO', `Título: ${titulo}`);
         res.status(201).json({ message: 'Anuncio creado correctamente.' });
     } catch (error) {
         console.error('[ERROR] Crear anuncio:', error);
@@ -141,6 +143,7 @@ router.put('/:id', protect, async (req, res) => {
             'UPDATE anuncios SET titulo=?, descripcion=?, fecha=?, lugar=?, precio=?, categoria=?, participantes=? WHERE id=?',
             [titulo, descripcion, fecha, lugar, precio || 0, categoria, participantes, anuncioId]
         );
+        await logAction(req, 'EDITAR_ANUNCIO', `ID: ${anuncioId}, Título: ${titulo}`);
         res.json({ message: 'Anuncio editado correctamente.' });
     } catch (error) {
         console.error('[ERROR] Editar anuncio:', error);
@@ -162,8 +165,9 @@ router.delete('/:id', protect, async (req, res) => {
         if (anuncio.user_id !== userId && !(name === 'admin' && email === 'admin@gmail.com')) {
             return res.status(403).json({ message: 'No tienes permiso para eliminar este anuncio.' });
         }
-        await db.query('DELETE FROM anuncios WHERE id = ?', [anuncioId]);
-        res.json({ message: 'Anuncio eliminado correctamente.' });
+    await db.query('DELETE FROM anuncios WHERE id = ?', [anuncioId]);
+    await logAction(req, 'ELIMINAR_ANUNCIO', `ID: ${anuncioId}, Título: ${anuncio.titulo}`);
+    res.json({ message: 'Anuncio eliminado correctamente.' });
     } catch (error) {
         console.error('[ERROR] Eliminar anuncio:', error);
         res.status(500).json({ message: 'Error al eliminar el anuncio.' });
