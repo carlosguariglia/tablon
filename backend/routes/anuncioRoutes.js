@@ -136,7 +136,7 @@ router.put('/:id', protect, async (req, res) => {
         const anuncio = anuncioRows[0];
         if (!anuncio) return res.status(404).json({ message: 'Anuncio no encontrado.' });
         // Permitir solo al autor o al admin
-        if (anuncio.user_id !== userId && !(name === 'admin' && email === 'admin@gmail.com')) {
+        if (anuncio.user_id !== userId && !req.user.is_admin) {
             return res.status(403).json({ message: 'No tienes permiso para editar este anuncio.' });
         }
         await db.query(
@@ -162,7 +162,7 @@ router.delete('/:id', protect, async (req, res) => {
         const anuncio = anuncioRows[0];
         if (!anuncio) return res.status(404).json({ message: 'Anuncio no encontrado.' });
         // Permitir solo al autor o al admin
-        if (anuncio.user_id !== userId && !(name === 'admin' && email === 'admin@gmail.com')) {
+        if (anuncio.user_id !== userId && !req.user.is_admin) {
             return res.status(403).json({ message: 'No tienes permiso para eliminar este anuncio.' });
         }
     await db.query('DELETE FROM anuncios WHERE id = ?', [anuncioId]);

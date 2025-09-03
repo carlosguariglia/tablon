@@ -10,6 +10,7 @@ async function createDatabase() {
         name VARCHAR(100) NOT NULL,
         email VARCHAR(100) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
+        is_admin BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
@@ -51,6 +52,72 @@ async function createDatabase() {
       )
     `);
     console.log('✅ Tabla audit_logs creada exitosamente');
+
+
+    // Crear stored procedure para cambiar el rol de admin
+    await query(`DROP PROCEDURE IF EXISTS SetUserAdmin;`);
+    await query(`
+      CREATE PROCEDURE SetUserAdmin(IN userId INT, IN adminValue BOOLEAN)
+      BEGIN
+        UPDATE users SET is_admin = adminValue WHERE id = userId;
+      END
+    `);
+    console.log('✅ Stored procedure SetUserAdmin creado exitosamente');
+
+    // CRUD de usuarios
+    await query(`DROP PROCEDURE IF EXISTS CreateUser;`);
+    await query(`
+      CREATE PROCEDURE CreateUser(
+        IN p_name VARCHAR(100),
+        IN p_email VARCHAR(100),
+        IN p_password VARCHAR(255),
+        IN p_is_admin BOOLEAN
+      )
+      BEGIN
+        INSERT INTO users (name, email, password, is_admin)
+        VALUES (p_name, p_email, p_password, p_is_admin);
+      END
+    `);
+    console.log('✅ Stored procedure CreateUser creado exitosamente');
+
+    await query(`DROP PROCEDURE IF EXISTS GetUserById;`);
+    await query(`
+      CREATE PROCEDURE GetUserById(IN p_id INT)
+      BEGIN
+        SELECT id, name, email, is_admin, created_at, updated_at
+        FROM users WHERE id = p_id;
+      END
+    `);
+    console.log('✅ Stored procedure GetUserById creado exitosamente');
+
+    await query(`DROP PROCEDURE IF EXISTS UpdateUser;`);
+    await query(`
+      CREATE PROCEDURE UpdateUser(
+        IN p_id INT,
+        IN p_name VARCHAR(100),
+        IN p_email VARCHAR(100),
+        IN p_password VARCHAR(255),
+        IN p_is_admin BOOLEAN
+      )
+      BEGIN
+        UPDATE users
+        SET name = p_name,
+            email = p_email,
+            password = p_password,
+            is_admin = p_is_admin
+        WHERE id = p_id;
+      END
+    `);
+    console.log('✅ Stored procedure UpdateUser creado exitosamente');
+
+    await query(`DROP PROCEDURE IF EXISTS DeleteUser;`);
+    await query(`
+      CREATE PROCEDURE DeleteUser(IN p_id INT)
+      BEGIN
+        DELETE FROM users WHERE id = p_id;
+      END
+    `);
+    console.log('✅ Stored procedure DeleteUser creado exitosamente');
 
     process.exit(0);
   } catch (error) {

@@ -20,15 +20,15 @@ const register = async (req, res) => {
       });
     }
 
-    await User.create({ name, email, password });
-    const user = await User.findByEmail(email);
-    const token = generateToken({ id: user.id, name: user.name, email: user.email });
+  await User.create({ name, email, password });
+  const user = await User.findByEmail(email);
+  const token = generateToken({ id: user.id, name: user.name, email: user.email, is_admin: user.is_admin });
 
     res.status(201).json({ 
       success: true,
       message: 'Usuario registrado exitosamente', 
       token,
-      user: { id: user.id, name: user.name, email: user.email }
+      user: { id: user.id, name: user.name, email: user.email, is_admin: user.is_admin }
     });
   } catch (error) {
     console.error('Error en registro:', error);
@@ -59,7 +59,7 @@ const login = async (req, res) => {
       });
     }
 
-    const token = generateToken({ id: user.id, name: user.name, email: user.email });
+  const token = generateToken({ id: user.id, name: user.name, email: user.email, is_admin: user.is_admin });
 
     // Registrar acción de login en auditoría
     try {
@@ -72,7 +72,7 @@ const login = async (req, res) => {
       success: true,
       message: 'Login exitoso',
       token,
-      user: { id: user.id, name: user.name, email: user.email }
+      user: { id: user.id, name: user.name, email: user.email, is_admin: user.is_admin }
     });
   } catch (error) {
     console.error('Error en login:', error);
@@ -97,7 +97,7 @@ const verifyTokenController = async (req, res) => {
 
     res.json({ 
       success: true,
-      user: { id: user.id, name: user.name, email: user.email }
+      user: { id: user.id, name: user.name, email: user.email, is_admin: user.is_admin }
     });
   } catch (error) {
     console.error('Error al verificar token:', error);

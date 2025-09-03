@@ -298,15 +298,56 @@
                 showBtn.textContent = 'Crear anuncio';
                 userHeaderDiv.appendChild(showBtn);
 
-                // Botón auditoría solo para admin
-                if (user.name === 'admin' && user.email === 'admin@gmail.com') {
-                    const auditBtn = document.createElement('button');
-                    auditBtn.className = 'btn';
-                    auditBtn.textContent = 'Ver auditoría';
-                    auditBtn.onclick = function() {
+                // Menú de administración solo para admin
+                if (user.is_admin) {
+                    // Botón engranaje
+                    const gearBtn = document.createElement('button');
+                    gearBtn.className = 'btn';
+                    gearBtn.innerHTML = '<span style="font-size:22px;">&#9881;</span>';
+                    gearBtn.style.position = 'relative';
+                    userHeaderDiv.appendChild(gearBtn);
+
+                    // Menú desplegable
+                    const menu = document.createElement('div');
+                    menu.style.position = 'absolute';
+                    menu.style.top = '40px';
+                    menu.style.right = '0';
+                    menu.style.background = '#fff';
+                    menu.style.border = '1px solid #c4b5fd';
+                    menu.style.borderRadius = '8px';
+                    menu.style.boxShadow = '0 2px 8px rgba(139,92,246,0.15)';
+                    menu.style.display = 'none';
+                    menu.style.zIndex = '100';
+                    menu.style.minWidth = '160px';
+
+                    // Opción Ver auditoría
+                    const auditOption = document.createElement('button');
+                    auditOption.className = 'btn';
+                    auditOption.textContent = 'Ver auditoría';
+                    auditOption.style.width = '100%';
+                    auditOption.onclick = function() {
                         window.location.href = '/pages/audit.html';
                     };
-                    userHeaderDiv.appendChild(auditBtn);
+                    menu.appendChild(auditOption);
+
+                    // Opción Adm Usuarios
+                    const usersOption = document.createElement('button');
+                    usersOption.className = 'btn';
+                    usersOption.textContent = 'Adm Usuarios';
+                    usersOption.style.width = '100%';
+                    usersOption.onclick = function() {
+                        window.location.href = '/pages/admin.html';
+                    };
+                    menu.appendChild(usersOption);
+
+                    gearBtn.appendChild(menu);
+                    gearBtn.onclick = function(e) {
+                        e.stopPropagation();
+                        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+                    };
+                    document.addEventListener('click', function() {
+                        menu.style.display = 'none';
+                    });
                 }
 
                 const logoutBtn = document.createElement('button');

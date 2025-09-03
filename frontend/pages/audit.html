@@ -14,7 +14,17 @@
     <tbody></tbody>
   </table>
 </div>
+<body>
+  <div style="margin:32px 0; background:#faf5ff; border-radius:20px; box-shadow:0 4px 32px rgba(88,28,135,0.12); border:1px solid #e5d9ff; padding:2rem;">
+    <h2>Auditoría</h2>
+    <div id="auditLogs"></div>
+  <button id="backToTablon" class="btn" style="margin-top:20px; background:#8b5cf6; color:#fff; border-radius:10px; font-size:1.08rem; font-weight:700; box-shadow:0 2px 12px rgba(139,92,246,0.3); border:none;">← Volver al Tablón</button>
+  </div>
+</body>
 <script>
+document.getElementById('backToTablon').onclick = function() {
+  window.location.href = '/pages/tablon.html';
+};
 // Mostrar panel solo si el usuario es admin
 function showAuditPanelIfAdmin() {
   const user = JSON.parse(localStorage.getItem('user'));

@@ -26,6 +26,9 @@ app.use('/api/anuncios', anuncioRoutes);
 const auditRoutes = require('./routes/auditRoutes');
 app.use('/api/audit', auditRoutes);
 
+const userRoutes = require('./routes/userRoutes');
+app.use('/api/users', userRoutes);
+
 // Ruta SPA - Maneja todas las rutas no-API
 //app.get(['/', '/login', '/register', '/welcome'], (req, res) => {
 //  res.sendFile(path.join(__dirname, '../frontend/index.html'));
