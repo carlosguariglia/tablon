@@ -476,15 +476,25 @@
 
                 form.onsubmit = async function(e) {
                     e.preventDefault();
+                    // Obtener token y validar
                     const token = localStorage.getItem('token');
+                    if (!token) {
+                        anuncioMsg.textContent = 'Debes iniciar sesión para crear un anuncio.';
+                        setTimeout(() => window.location.href = '/pages/login.html', 1200);
+                        return;
+                    }
+                    // Sanitizar inputs
+                    function clean(str) {
+                        return String(str).trim().replace(/[<>&"']/g, '');
+                    }
                     const data = {
-                        titulo: titulo.value,
-                        descripcion: descripcion.value,
-                        fecha: fecha.value,
-                        lugar: lugar.value,
-                        precio: precio.value,
-                        categoria: categoria.value,
-                        participantes: participantes.value
+                        titulo: clean(titulo.value),
+                        descripcion: clean(descripcion.value),
+                        fecha: clean(fecha.value),
+                        lugar: clean(lugar.value),
+                        precio: clean(precio.value),
+                        categoria: clean(categoria.value),
+                        participantes: clean(participantes.value)
                     };
                     try {
                         const res = await fetch('/api/anuncios', {
@@ -495,7 +505,15 @@
                             },
                             body: JSON.stringify(data)
                         });
-                        if (!res.ok) throw new Error(`Error: ${res.status}`);
+                        if (res.status === 401) {
+                            anuncioMsg.textContent = 'Sesión inválida o expirada. Redirigiendo al login...';
+                            setTimeout(() => window.location.href = '/pages/login.html', 1200);
+                            return;
+                        }
+                        if (!res.ok) {
+                            const err = await res.json().catch(() => ({}));
+                            throw new Error(err.message || `Error: ${res.status}`);
+                        }
                         const nuevoAnuncio = await res.json();
                         console.log('Anuncio creado:', nuevoAnuncio);
                         anuncioMsg.textContent = 'Anuncio publicado con éxito.';
@@ -506,7 +524,7 @@
                         fetchAnuncios({ desde: document.getElementById('desde').value });
                     } catch (error) {
                         console.error('Error al crear anuncio:', error);
-                        anuncioMsg.textContent = 'Error al publicar el anuncio.';
+                        anuncioMsg.textContent = error.message || 'Error al publicar el anuncio.';
                     }
                 };
             } else {
@@ -551,15 +569,23 @@
             document.getElementById('editAnuncioForm').onsubmit = async function(e) {
                 e.preventDefault();
                 const token = localStorage.getItem('token');
+                if (!token) {
+                    document.getElementById('editMsg').textContent = 'Debes iniciar sesión para editar.';
+                    setTimeout(() => window.location.href = '/pages/login.html', 1200);
+                    return;
+                }
                 const user = JSON.parse(localStorage.getItem('user'));
+                function clean(str) {
+                    return String(str).trim().replace(/[<>&"']/g, '');
+                }
                 const data = {
-                    titulo: document.getElementById('editTitulo').value,
-                    descripcion: document.getElementById('editDescripcion').value,
-                    fecha: document.getElementById('editFecha').value,
-                    lugar: document.getElementById('editLugar').value,
-                    precio: document.getElementById('editPrecio').value,
-                    categoria: document.getElementById('editCategoria').value,
-                    participantes: document.getElementById('editParticipantes').value
+                    titulo: clean(document.getElementById('editTitulo').value),
+                    descripcion: clean(document.getElementById('editDescripcion').value),
+                    fecha: clean(document.getElementById('editFecha').value),
+                    lugar: clean(document.getElementById('editLugar').value),
+                    precio: clean(document.getElementById('editPrecio').value),
+                    categoria: clean(document.getElementById('editCategoria').value),
+                    participantes: clean(document.getElementById('editParticipantes').value)
                 };
                 let body = data;
                 if (user && user.name === 'admin' && user.email === 'admin@gmail.com') {
@@ -575,6 +601,11 @@
                         },
                         body: JSON.stringify(body)
                     });
+                    if (res.status === 401) {
+                        document.getElementById('editMsg').textContent = 'Sesión inválida o expirada. Redirigiendo al login...';
+                        setTimeout(() => window.location.href = '/pages/login.html', 1200);
+                        return;
+                    }
                     const result = await res.json();
                     if (res.ok) {
                         document.getElementById('editMsg').textContent = 'Anuncio editado correctamente.';
@@ -600,26 +631,37 @@
             if (confirm('¿Seguro que quieres eliminar este anuncio?')) {
                 const token = localStorage.getItem('token');
                 const user = JSON.parse(localStorage.getItem('user'));
+                if (!token) {
+                    alert('Debes iniciar sesión para eliminar anuncios. Redirigiendo al login...');
+                    setTimeout(() => window.location.href = '/pages/login.html', 1200);
+                    return;
+                }
                 let body = {};
                 // Si el usuario es admin, enviar también nombre y email
                 if (user && user.name === 'admin' && user.email === 'admin@gmail.com') {
                     body.name = user.name;
                     body.email = user.email;
                 }
-                fetch(`/api/anuncios/${anuncio.id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(body)
-                })
-                .then(res => res.json())
-                .then(data => {
-                    alert(data.message);
+                try {
+                    const res = await fetch(`/api/anuncios/${anuncio.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(body)
+                    });
+                    if (res.status === 401) {
+                        alert('Sesión inválida o expirada. Redirigiendo al login...');
+                        setTimeout(() => window.location.href = '/pages/login.html', 1200);
+                        return;
+                    }
+                    const data = await res.json();
+                    alert(data.message || 'Anuncio eliminado.');
                     fetchAnuncios();
-                })
-                .catch(() => alert('Error al eliminar el anuncio.'));
+                } catch (err) {
+                    alert('Error al eliminar el anuncio.');
+                }
             }
         }
 

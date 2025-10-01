@@ -2,14 +2,46 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 const db = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const anuncioRoutes = require('./routes/anuncioRoutes');
 
 const app = express();
 
-// Configuración básica
-//app.use(cors());
+// Configuración de CORS segura
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+
+// Rate limiting general
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 100, // máximo 100 requests por IP cada 15 minutos
+  message: {
+    error: 'Demasiadas solicitudes desde esta IP, intenta nuevamente en 15 minutos.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+app.use(generalLimiter);
+
+// Rate limiting específico para autenticación (más restrictivo)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 5, // máximo 5 intentos de login/registro por IP cada 15 minutos
+  message: {
+    error: 'Demasiados intentos de autenticación, intenta nuevamente en 15 minutos.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
 app.use(express.json());
 
 // Conexión a la base de datos
@@ -21,22 +53,13 @@ db.connect()
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Rutas API
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/anuncios', anuncioRoutes);
 const auditRoutes = require('./routes/auditRoutes');
 app.use('/api/audit', auditRoutes);
 
 const userRoutes = require('./routes/userRoutes');
 app.use('/api/users', userRoutes);
-
-// Ruta SPA - Maneja todas las rutas no-API
-//app.get(['/', '/login', '/register', '/welcome'], (req, res) => {
-//  res.sendFile(path.join(__dirname, '../frontend/index.html'));
-//});
-
-//app.get('*', (req, res) => {
-//  res.sendFile(path.join(__dirname, '../frontend/index.html'));
-//});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
@@ -47,16 +70,6 @@ app.listen(PORT, () => {
 });
 
 
-
-// Configuración específica de CORS
-const corsOptions = {
-  origin: 'http://localhost:3000',
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  credentials: true,
-  optionsSuccessStatus: 204
-};
-
-app.use(cors(corsOptions));
 
 // Manejo de preflight para todas las rutas
 app.options('*', cors(corsOptions));

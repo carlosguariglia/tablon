@@ -1,35 +1,32 @@
-const User = require('../models/User');
+
+const User = require('../repositories/UserRepository');
 const { generateToken, verifyToken } = require('../config/jwt');
+const { sanitizeString, validateEmail, validatePassword } = require('../utils/validateSanitize');
+const { logAction } = require('./auditController');
 
 const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
- console.log('Email recibido para registro:', email);
+    let { name, email, password } = req.body;
+    name = sanitizeString(name);
+    email = sanitizeString(email);
+    password = sanitizeString(password);
     if (!name || !email || !password) {
-      return res.status(400).json({ 
-        success: false,
-        message: 'Todos los campos son requeridos' 
-      });
+      return res.status(400).json({ success: false, message: 'Todos los campos son requeridos' });
     }
-
+    if (!validateEmail(email)) {
+      return res.status(400).json({ success: false, message: 'Email inválido' });
+    }
+    if (!validatePassword(password)) {
+      return res.status(400).json({ success: false, message: 'Contraseña débil. Debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número.' });
+    }
     const existingUser = await User.findByEmail(email);
     if (existingUser) {
-      return res.status(400).json({ 
-        success: false,
-        message: 'El email ya está registrado' 
-      });
+      return res.status(400).json({ success: false, message: 'El email ya está registrado' });
     }
-
-  await User.create({ name, email, password });
-  const user = await User.findByEmail(email);
-  const token = generateToken({ id: user.id, name: user.name, email: user.email, is_admin: user.is_admin });
-
-    res.status(201).json({ 
-      success: true,
-      message: 'Usuario registrado exitosamente', 
-      token,
-      user: { id: user.id, name: user.name, email: user.email, is_admin: user.is_admin }
-    });
+    await User.create({ name, email, password });
+    const user = await User.findByEmail(email);
+    const token = generateToken({ id: user.id, name: user.name, email: user.email, is_admin: user.is_admin });
+    res.status(201).json({ success: true, message: 'Usuario registrado exitosamente', token, user: { id: user.id, name: user.name, email: user.email, is_admin: user.is_admin } });
   } catch (error) {
     console.error('Error en registro:', error);
     res.status(500).json({ 
@@ -42,38 +39,25 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
-
+    let { email, password } = req.body;
+    email = sanitizeString(email);
+    password = sanitizeString(password);
     if (!email || !password) {
-      return res.status(400).json({ 
-        success: false,
-        message: 'Email y contraseña son requeridos' 
-      });
+      return res.status(400).json({ success: false, message: 'Email y contraseña son requeridos' });
     }
-
+    if (!validateEmail(email)) {
+      return res.status(400).json({ success: false, message: 'Email inválido' });
+    }
     const user = await User.findByEmail(email);
     if (!user || !(await User.verifyPassword(password, user.password))) {
-      return res.status(401).json({ 
-        success: false,
-        message: 'Credenciales inválidas' 
-      });
+      return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
     }
-
-  const token = generateToken({ id: user.id, name: user.name, email: user.email, is_admin: user.is_admin });
-
+    const token = generateToken({ id: user.id, name: user.name, email: user.email, is_admin: user.is_admin });
     // Registrar acción de login en auditoría
     try {
-      const { logAction } = require('./auditController');
-      // Simular req.user para logAction
       await logAction({ user: { id: user.id, name: user.name, email: user.email } }, 'LOGIN', `Email: ${email}`);
     } catch (e) { /* Ignorar errores de log */ }
-
-    res.json({ 
-      success: true,
-      message: 'Login exitoso',
-      token,
-      user: { id: user.id, name: user.name, email: user.email, is_admin: user.is_admin }
-    });
+    res.json({ success: true, message: 'Login exitoso', token, user: { id: user.id, name: user.name, email: user.email, is_admin: user.is_admin } });
   } catch (error) {
     console.error('Error en login:', error);
     res.status(500).json({ 

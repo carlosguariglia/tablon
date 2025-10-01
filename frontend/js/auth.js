@@ -53,8 +53,10 @@ function showMessage(elementId, message, isError = true) {
 if (document.getElementById('loginForm')) {
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+  let email = document.getElementById('email').value;
+  let password = document.getElementById('password').value;
+  email = email.trim().replace(/[<>&"']/g, '');
+  password = password.trim().replace(/[<>&"']/g, '');
 
     try {
       const response = await fetch(`${API_URL}/login`, {
@@ -81,11 +83,14 @@ if (document.getElementById('loginForm')) {
 if (document.getElementById('registerForm')) {
   document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const name = document.getElementById('name').value;
-    // Usar emailReg si existe, sino usar email
-    const email = document.getElementById('emailReg') ? document.getElementById('emailReg').value : document.getElementById('email').value;
-    // Usar passwordReg si existe, sino usar password
-    const password = document.getElementById('passwordReg') ? document.getElementById('passwordReg').value : document.getElementById('password').value;
+  let name = document.getElementById('name').value;
+  name = name.trim().replace(/[<>&"']/g, '');
+  // Usar emailReg si existe, sino usar email
+  let email = document.getElementById('emailReg') ? document.getElementById('emailReg').value : document.getElementById('email').value;
+  email = email.trim().replace(/[<>&"']/g, '');
+  // Usar passwordReg si existe, sino usar password
+  let password = document.getElementById('passwordReg') ? document.getElementById('passwordReg').value : document.getElementById('password').value;
+  password = password.trim().replace(/[<>&"']/g, '');
 
     try {
       const response = await fetch(`${API_URL}/register`, {

@@ -1,4 +1,4 @@
-const Audit = require('../models/Audit');
+const Audit = require('../repositories/AuditRepository');
 
 const logAction = async (req, action, details = '') => {
   if (!req.user) return;

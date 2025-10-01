@@ -23,7 +23,7 @@ frontend/
   pages/            # Vistas HTML (login, tablon, audit, etc.)
   js/               # Lógica de frontend (auth.js)
   css/              # Estilos
-  media/            # Imágenes (ej: corchea.png)
+  Media/            # Imágenes (ej: corchea.png)
 ```
 
 ## Instalación
