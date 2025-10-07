@@ -52,6 +52,11 @@ db.connect()
 // Servir archivos estáticos del frontend
 app.use(express.static(path.join(__dirname, '../frontend')));
 
+// Servir imagenes y iconos ubicados en la carpeta raíz `iconos_redes_sociales`
+app.use('/iconos_redes_sociales', express.static(path.join(__dirname, '..', 'iconos_redes_sociales')));
+// Expose assets/images path mapped to the existing icon folder (no move needed)
+app.use('/assets/images', express.static(path.join(__dirname, '..', 'iconos_redes_sociales')));
+
 // Rutas API
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/anuncios', anuncioRoutes);
@@ -60,6 +65,10 @@ app.use('/api/audit', auditRoutes);
 
 const userRoutes = require('./routes/userRoutes');
 app.use('/api/users', userRoutes);
+const artistaRoutes = require('./routes/artistaRoutes');
+app.use('/api/artistas', artistaRoutes);
+const artistAdminRoutes = require('./routes/artistAdminRoutes');
+app.use('/api/admin/artistas', artistAdminRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

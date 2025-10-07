@@ -119,6 +119,74 @@ async function createDatabase() {
     `);
     console.log('✅ Stored procedure DeleteUser creado exitosamente');
 
+    // Crear tabla de artistas
+    await query(`
+      CREATE TABLE IF NOT EXISTS artists (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(150) NOT NULL UNIQUE,
+        bio TEXT,
+        photo VARCHAR(255),
+        spotify VARCHAR(255),
+        youtube VARCHAR(255),
+        whatsapp VARCHAR(255),
+        instagram VARCHAR(255),
+        threads VARCHAR(255),
+          tiktok VARCHAR(255),
+          bandcamp VARCHAR(255),
+        website VARCHAR(255),
+        email VARCHAR(150),
+        phone VARCHAR(50),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✅ Tabla artists creada exitosamente');
+
+    // Tabla intermedia anuncio_artistas (many-to-many)
+    await query(`
+      CREATE TABLE IF NOT EXISTS anuncio_artistas (
+        anuncio_id INT NOT NULL,
+        artist_id INT NOT NULL,
+        PRIMARY KEY (anuncio_id, artist_id),
+        FOREIGN KEY (anuncio_id) REFERENCES anuncios(id) ON DELETE CASCADE,
+        FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE CASCADE
+      )
+    `);
+    console.log('✅ Tabla anuncio_artistas creada exitosamente');
+
+    // Asegurar columnas nuevas en artists (para migraciones sin recrear la tabla)
+    const colsToAdd = [
+      `photo VARCHAR(255)`,
+      `spotify VARCHAR(255)`,
+      `youtube VARCHAR(255)`,
+      `whatsapp VARCHAR(255)`,
+      `instagram VARCHAR(255)`,
+      `threads VARCHAR(255)`,
+      `tiktok VARCHAR(255)`,
+    `bandcamp VARCHAR(255)`,
+      `website VARCHAR(255)`,
+      `email VARCHAR(150)`,
+      `phone VARCHAR(50)`
+    ];
+    for (const colDef of colsToAdd) {
+      const colName = colDef.split(' ')[0];
+      try {
+        await query(`ALTER TABLE artists ADD COLUMN IF NOT EXISTS ${colDef}`);
+        console.log(`✅ Columna ${colName} asegurada en artists`);
+      } catch (e) {
+        // MySQL older versions may not support IF NOT EXISTS for ADD COLUMN; fallback safe path
+        try {
+          // Check if column exists
+          const [rows] = await query(`SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'artists' AND COLUMN_NAME = ?`, [process.env.DB_NAME, colName]);
+          if (!rows || rows.length === 0) {
+            await query(`ALTER TABLE artists ADD COLUMN ${colDef}`);
+            console.log(`✅ Columna ${colName} añadida a artists`);
+          }
+        } catch (err) {
+          console.warn(`⚠️ No se pudo asegurar columna ${colName}:`, err.message || err);
+        }
+      }
+    }
+
     process.exit(0);
   } catch (error) {
     console.error('❌ Error al crear las tablas:', error);
