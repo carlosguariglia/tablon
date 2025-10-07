@@ -74,7 +74,7 @@
             // show photo if available and name/bio
             let html = `<div class="artist-info">`;
             if (data.photo) {
-              html += `<div class="artist-header"><div class="artist-photo"><img src="${data.photo}" alt="${data.artist}" loading="lazy" onerror="this.onerror=null;this.src='/assets/icons/playing_music.svg'"/></div><div class="artist-meta"><h2>${data.artist}</h2>`;
+              html += `<div class="artist-header"><div class="artist-photo"><img src="${data.photo}" alt="${data.artist}" loading="lazy" onerror="this.onerror=null;this.src='/assets/images/playing_music_icon_176915.png'"/></div><div class="artist-meta"><h2>${data.artist}</h2>`;
               if (data.bio) html += `<p><strong>Bio:</strong> ${data.bio}</p>`;
               html += `</div></div>`;
             } else {
@@ -115,7 +115,7 @@
         html.push(`<div class="artist-info">`);
         // photo + name area
           if (data.photo) {
-          html.push(`<div class="artist-header"><div class="artist-photo"><img src="${data.photo}" alt="${data.artist}" loading="lazy" onerror="this.onerror=null;this.src='/assets/icons/playing_music.svg'"/></div><div class="artist-meta"><h2>${data.artist}</h2>`);
+          html.push(`<div class="artist-header"><div class="artist-photo"><img src="${data.photo}" alt="${data.artist}" loading="lazy" onerror="this.onerror=null;this.src='/assets/images/playing_music_icon_176915.png'"/></div><div class="artist-meta"><h2>${data.artist}</h2>`);
           if (data.bio) html.push(`<p><strong>Sinopsis:</strong> ${data.bio}</p>`);
           html.push(`</div></div>`);
         } else {

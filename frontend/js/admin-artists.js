@@ -41,29 +41,28 @@ function renderArtists(artists) {
     const card = document.createElement('div');
     card.className = 'artist-card';
 
-    const photo = document.createElement('div');
-    photo.className = 'artist-photo';
-    if (a.photo) {
-      const img = document.createElement('img');
-      img.src = a.photo;
-      img.alt = a.name;
-      photo.appendChild(img);
-    } else {
-      photo.textContent = a.name.charAt(0).toUpperCase();
-    }
-
     const meta = document.createElement('div');
     meta.className = 'artist-meta';
     const nameInput = document.createElement('input');
     nameInput.type = 'text'; nameInput.value = a.name; nameInput.dataset.id = a.id;
     const bioInput = document.createElement('textarea'); bioInput.rows = 2; bioInput.value = a.bio || '';
 
-    meta.appendChild(nameInput);
-    meta.appendChild(bioInput);
+  // Admin thumbnail: show photo if available, otherwise a small playing_music.svg placeholder
+  const thumb = document.createElement('img');
+  thumb.className = 'admin-photo-thumb';
+  thumb.alt = 'foto';
+  thumb.src = a.photo || '/assets/images/playing_music_icon_176915.png';
+  // ensure fallback on load error
+  thumb.onerror = function() { this.onerror = null; this.src = '/assets/images/playing_music_icon_176915.png'; };
 
+  meta.appendChild(thumb);
+  meta.appendChild(nameInput);
+  meta.appendChild(bioInput);
+
+    // photo is editable via the edit row input but we do not display its filename here
     const socials = document.createElement('div');
     socials.className = 'social-links';
-  const socialFields = ['spotify','youtube','whatsapp','instagram','threads','tiktok','bandcamp','website','email','phone'];
+    const socialFields = ['spotify','youtube','whatsapp','instagram','threads','tiktok','bandcamp','website','email','phone'];
     socialFields.forEach(field => {
       const val = a[field];
       if (val) {
@@ -73,7 +72,6 @@ function renderArtists(artists) {
         aLink.rel = 'noopener noreferrer';
         aLink.className = `social ${field}`;
         aLink.title = field;
-        // simple icon using text fallback; icons can be replaced with SVG later
         const span = document.createElement('span'); span.className = 'social-icon'; span.textContent = field[0].toUpperCase();
         aLink.appendChild(span);
         socials.appendChild(aLink);
@@ -121,11 +119,11 @@ function renderArtists(artists) {
       editRow.appendChild(inp);
     });
 
-    card.appendChild(photo);
-    card.appendChild(meta);
-    card.appendChild(socials);
-    card.appendChild(editRow);
-    card.appendChild(actions);
+  // Order: name & bio (meta), then socials (photo first), then edit row, then actions
+  card.appendChild(meta);
+  card.appendChild(socials);
+  card.appendChild(editRow);
+  card.appendChild(actions);
 
     container.appendChild(card);
   });
@@ -233,4 +231,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // initial load
   fetchArtists();
+  // no preview handlers for newPhoto
 });

@@ -483,17 +483,40 @@ header h1 {
 .admin-artists .artist-row input[type="text"] { width: 60%; }
 .admin-artists .top-actions { display: flex; gap: 8px; margin-bottom: 12px; }
 .admin-artists .create-row { display: flex; gap: 8px; align-items: center; }
-.artist-card{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid #eee;border-radius:10px;margin-bottom:10px;background:#fff}
-.artist-photo{width:64px;height:64px;border-radius:8px;flex:0 0 64px;display:flex;align-items:center;justify-content:center;background:#f3f3f3;color:#333;font-weight:700}
-.artist-photo img{width:100%;height:100%;object-fit:cover;border-radius:6px}
-.artist-meta{flex:1;display:flex;flex-direction:column;gap:6px}
-.artist-meta input, .artist-meta textarea{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px}
+.artist-card{
+    display: grid;
+    grid-template-columns: 128px 1fr auto;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+        "photo meta actions"
+        "photo socials actions"
+        "photo edit actions";
+    gap: 12px 18px;
+    align-items: start;
+    padding: 16px;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    background: #fff;
+}
+.admin-artists .artist-photo{grid-area: photo; width:128px; height:128px; border-radius:8px; display:flex; align-items:center; justify-content:center; background:#f3f3f3; color:#333; font-weight:700}
+.admin-artists .artist-photo img{width:100%;height:100%;object-fit:cover;border-radius:6px}
+
+/* Admin inline thumbnail used inside .artist-meta */
+.admin-photo-thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; border: 1px solid #eee; display: block; }
+
+/* Public artist header photo - keep it square and avoid stretching */
+.artist-header .artist-photo{width:160px;height:160px;border-radius:8px;flex:0 0 160px;display:flex;align-items:center;justify-content:center;background:#f3f3f3}
+.artist-header .artist-photo img{width:100%;height:100%;object-fit:cover;border-radius:6px}
+.artist-meta{grid-area: meta; display:flex; flex-direction:column; gap:8px}
+.artist-meta input, .artist-meta textarea{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;min-height:40px}
 .social-links{display:flex;gap:8px;align-items:center;margin-top:6px}
 .social-links a{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:6px;background:#f3f3ff;color:#333;text-decoration:none;border:1px solid #eee}
 .social-links a .social-icon{font-size:14px;font-weight:700}
-.artist-edit-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.social-links{grid-area: socials; display:flex; gap:8px; align-items:center; margin-top:6px}
+.artist-edit-row{grid-area: edit; display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
 .artist-edit-input{padding:6px;border-radius:6px;border:1px solid #ddd}
-.artist-actions{margin-left:12px;display:flex;align-items:flex-start;gap:8px}
+.artist-actions{grid-area: actions; display:flex; flex-direction:column; align-items:flex-end; gap:8px}
 
 /* small helpers */
 .hidden { display: none !important; }
