@@ -1,17 +1,17 @@
 <!-- Panel de administración de usuarios solo visible para admin -->
-<div id="adminPanel" style="display:none; margin:32px 0; background:#faf5ff; border-radius:20px; box-shadow:0 4px 32px rgba(88,28,135,0.12); border:1px solid #e5d9ff; padding:2rem;">
+<div id="adminPanel" class="admin-panel">
   <h2>Administrar usuarios</h2>
-  <form id="createUserForm" style="margin-bottom:2em;">
-    <input type="text" id="newName" placeholder="Nombre" required style="margin-right:8px;">
-    <input type="email" id="newEmail" placeholder="Email" required style="margin-right:8px;">
-    <input type="password" id="newPassword" placeholder="Contraseña" required style="margin-right:8px;">
-    <label style="margin-right:8px;">
+  <form id="createUserForm" class="admin-form">
+    <input type="text" id="newName" placeholder="Nombre" required class="admin-input">
+    <input type="email" id="newEmail" placeholder="Email" required class="admin-input">
+    <input type="password" id="newPassword" placeholder="Contraseña" required class="admin-input">
+    <label class="admin-label">
       <input type="checkbox" id="newIsAdmin"> Admin
     </label>
-    <button type="submit" class="btn" style="background:#8b5cf6; color:#fff; border-radius:10px; font-size:1.08rem; font-weight:700; box-shadow:0 2px 12px rgba(139,92,246,0.3); border:none;">Crear usuario</button>
+    <button type="submit" class="btn">Crear usuario</button>
   </form>
-  <div id="userMsg" style="margin-bottom:1em; color:#581c87; font-weight:700;"></div>
-  <table id="usersTable" border="1" style="width:100%; border-collapse:collapse;">
+  <div id="userMsg" class="admin-msg"></div>
+  <table id="usersTable" border="1" class="admin-table">
     <thead>
       <tr>
         <th>Nombre</th>
@@ -22,7 +22,7 @@
     </thead>
     <tbody></tbody>
   </table>
-  <button id="backToTablon" class="btn" style="margin-top:20px; background:#8b5cf6; color:#fff; border-radius:10px; font-size:1.08rem; font-weight:700; box-shadow:0 2px 12px rgba(139,92,246,0.3); border:none;">← Volver al Tablón</button>
+  <button id="backToTablon" class="btn admin-back">← Volver al Tablón</button>
 </div>
 <script>
 function showAdminPanelIfAdmin() {
@@ -69,10 +69,10 @@ async function fetchUsers() {
       <td>${u.name}</td>
       <td>${u.email}</td>
       <td>${u.is_admin ? 'Sí' : 'No'}</td>
-      <td>
-        <button onclick="toggleAdmin(${u.id}, ${!u.is_admin})" class="btn" style="background:#8b5cf6; color:#fff; border-radius:10px; font-size:1.08rem; font-weight:700; box-shadow:0 2px 12px rgba(139,92,246,0.3); border:none; margin:0 0.2em;">${u.is_admin ? 'Quitar admin' : 'Hacer admin'}</button>
-        <button onclick="editUser(${u.id})" class="btn" style="background:#b68c44; color:#fff; border-radius:10px; font-size:1.08rem; font-weight:700; margin:0 0.2em;">Editar</button>
-        <button onclick="deleteUser(${u.id})" class="btn" style="background:#f87171; color:#fff; border-radius:10px; font-size:1.08rem; font-weight:700; margin:0 0.2em;">Eliminar</button>
+      <td class="admin-actions">
+        <button onclick="toggleAdmin(${u.id}, ${!u.is_admin})" class="btn admin-primary">${u.is_admin ? 'Quitar admin' : 'Hacer admin'}</button>
+        <button onclick="editUser(${u.id})" class="btn admin-warning">Editar</button>
+        <button onclick="deleteUser(${u.id})" class="btn admin-danger">Eliminar</button>
       </td>
     `;
     tbody.appendChild(tr);

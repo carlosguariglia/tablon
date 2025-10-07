@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin - Gestionar Artistas</title>
+  <link rel="stylesheet" href="/css/tablon.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Administración de Artistas</h1>
+      <a href="/pages/tablon.html" class="btn">← Volver</a>
+    </header>
+    <div class="top-actions">
+      <button id="refreshBtn" class="btn secondary">Refrescar</button>
+      <button id="logoutBtn" class="btn ghost">Cerrar sesión</button>
+    </div>
+
+    <section id="createSection">
+      <h3>Nuevo Artista</h3>
+      <div class="create-row">
+        <input id="newName" type="text" placeholder="Nombre del artista" />
+        <input id="newPhoto" type="text" placeholder="URL pequeña foto (imagen pública)" />
+        <textarea id="newBio" rows="2" placeholder="Sinopsis / bio (opcional)" style="min-width:320px"></textarea>
+      </div>
+      <div class="create-row" style="margin-top:8px;flex-wrap:wrap;">
+        <input id="newSpotify" type="text" placeholder="Spotify (URL)" />
+        <input id="newYoutube" type="text" placeholder="YouTube (URL)" />
+        <input id="newWhatsapp" type="text" placeholder="WhatsApp (URL)" />
+        <input id="newInstagram" type="text" placeholder="Instagram (URL)" />
+        <input id="newThreads" type="text" placeholder="Threads (URL)" />
+        <input id="newTiktok" type="text" placeholder="TikTok (URL)" />
+    <input id="newBandcamp" type="text" placeholder="Bandcamp (URL)" />
+        <input id="newWebsite" type="text" placeholder="Página web (URL)" />
+        <input id="newEmail" type="email" placeholder="Email" />
+        <input id="newPhone" type="text" placeholder="Teléfono" />
+        <button id="createBtn" class="btn primary">Crear</button>
+      </div>
+    </section>
+
+    <hr />
+
+    <section id="listSection">
+      <h3>Artistas existentes</h3>
+      <div id="artistsList"></div>
+    </section>
+  </div>
+
+  <script src="/js/auth.js"></script>
+  <script src="/js/admin-artists.js"></script>
+</body>
+</html>

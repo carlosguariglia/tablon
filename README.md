@@ -76,6 +76,8 @@ se debe crear una base de datos y un usuario antes de usarlo.
 - Existe un usuario especial llamado `admin@gmail.com` que es el único que puede editar o borrar anuncios de otros usuarios.
 - Además, este usuario admin es el único que puede acceder a la parte de auditoría, donde se registran todos los cambios realizados en la base de datos (login, alta, edición, borrado de anuncios).
 
+- La creación y edición de artistas (perfiles de artista) está restringida únicamente al usuario `admin`. El backend enlaza artistas mencionados en los anuncios sólo si el artista ya existe en la base de datos; no se crean artistas automáticamente desde el campo "participantes". Para crear o modificar artistas utilice la API administrativa (endpoints bajo `/api/admin/artistas`) o el panel de administración.
+
 ## Funcionalidades
 
 - **Login y registro**: Desde `login.html` con animación, usando JWT.

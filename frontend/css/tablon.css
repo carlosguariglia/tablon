@@ -68,6 +68,10 @@ header h1 {
     text-shadow: 0 2px 8px rgba(139,92,246,0.2);
 }
 
+.site-title { display:flex; align-items:center; gap:12px; }
+.site-logo { width:56px; height:56px; border-radius:50%; object-fit:cover; border:3px solid rgba(139,92,246,0.15); box-shadow:0 4px 12px rgba(0,0,0,0.08); }
+.site-logo:hover { transform: scale(1.06); box-shadow:0 8px 24px rgba(0,0,0,0.12); transition: transform 160ms ease, box-shadow 160ms ease; }
+
 #userHeader {
     display: flex;
     align-items: center;
@@ -352,3 +356,200 @@ header h1 {
         padding: 1rem;
     }
 }
+
+/* Reglas para botones de acciones de usuario (moved from inline styles in tablon.html) */
+.user-action-btn {
+    height: 48px;
+    min-width: 140px;
+    padding: 10px 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+}
+.user-action-btn.primary { background: #8b5cf6; color: #fff; }
+.user-action-btn.logout { background: #b68c44; color: #fff; }
+.user-action-btn.gear { padding: 8px; min-width: 44px; width: 44px; }
+@media (max-width:420px){
+    .user-action-btn{ min-width:96px; height:40px; }
+    .user-action-btn.gear{ display:inline-flex; width:44px; min-width:44px; }
+}
+
+/* ======================= */
+/* Header & User actions   */
+/* (moved from inline styles in HTML) */
+
+/* Container that holds the create-anuncio form (hidden by default) */
+#anuncioFormContainer { display: none; }
+
+/* User header already styled above (#userHeader)
+   Small adjustments for admin menu positioning */
+.user-action-btn.gear { position: relative; font-size: 0; }
+.user-action-btn.gear::before { content: '\2699'; font-size: 26px; display:inline-block; color:inherit; }
+
+/* Buttons used inside the filtros form */
+.filtros-form .artist-label { display: flex; align-items: center; gap: 8px; }
+#openArtistBtn { background: #b68c44; }
+#resetBtn { background: #888; }
+
+/* Error and popup defaults */
+.error-state { display: none; }
+.popup { display: none; }
+
+/* Modal (edit) default hidden; when showing JS sets style.display = 'flex' */
+#editModal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+
+/* Social link icons */
+.social-links { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.social-link { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; background:#fff; border-radius:10px; border:1px solid #eee; text-decoration:none; color:#1f2937; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+.social-link { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; background:#fff; border-radius:10px; border:1px solid #eee; text-decoration:none; color:#1f2937; box-shadow:0 2px 8px rgba(0,0,0,0.04); overflow:hidden; box-sizing:border-box; }
+.social-link img { width:20px; height:20px; display:block; flex-shrink:0; object-fit:contain; }
+.social-link .social-label { font-weight:700; font-size:0.95rem; margin-left:6px; white-space:nowrap; }
+.social-links > strong { display:flex; align-items:center; color:#581c87; margin-right:6px; font-size:1rem; }
+.social-items { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.social-label-title { color:#581c87; font-weight:800; margin-right:8px; display:flex; align-items:center; }
+
+/* Block layout: label above the icons */
+.social-block { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+.social-block .social-label-title { margin-right:0; }
+.social-block .social-items { align-items:center; }
+
+/* Prevent the pills from overlapping each other; ensure spacing and contain icons */
+.social-items .social-link { margin: 0; min-width: 44px; }
+
+/* Make icons a little smaller on very small devices and hide labels */
+@media (max-width: 420px) {
+    .social-link img { width:16px; height:16px; }
+    .social-link .social-label { display:none; }
+}
+
+/* Make label and items behave correctly and avoid overlap */
+.social-links { align-items: center; }
+.social-links > strong { flex: 0 0 auto; }
+.social-items { flex: 1 1 auto; min-width: 0; }
+.social-items .social-link { white-space:nowrap; }
+
+/* Responsive: hide the textual label on very small screens to save space */
+@media (max-width: 480px) {
+    .social-link .social-label { display:none; }
+    .social-links > strong { display:none; }
+}
+#editModal > div { background: #fff; padding: 24px; border-radius: 8px; min-width: 300px; position: relative; }
+#editModalClose { position: absolute; top: 8px; right: 12px; cursor: pointer; font-size: 24px; }
+
+/* ======================= */
+/* Admin / Audit panels    */
+/* (moved from inline styles in admin pages) */
+
+.admin-panel, .audit-panel { display: none; margin: 32px 0; background: #faf5ff; border-radius: 20px; box-shadow: 0 4px 32px rgba(88,28,135,0.12); border: 1px solid #e5d9ff; padding: 2rem; }
+.admin-panel h2, .audit-panel h2 { margin-top: 0; }
+
+.admin-form { margin-bottom: 2rem; }
+.admin-form input { margin-right: 8px; }
+.admin-actions .btn { margin: 0 0.2em; }
+
+/* Actions row used in admin pages */
+.actions-row{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+
+/* Table wrapper for horizontal scrolling on small viewports */
+.table-wrapper{overflow:auto}
+
+/* Admin artists specific */
+.admin-artists .container { max-width: 900px; margin: 32px auto; padding: 16px; }
+.admin-artists .artist-row { display: flex; align-items: center; justify-content: space-between; padding: 8px; border-bottom: 1px solid #e6e6e6; }
+.admin-artists .artist-row input[type="text"] { width: 60%; }
+.admin-artists .top-actions { display: flex; gap: 8px; margin-bottom: 12px; }
+.admin-artists .create-row { display: flex; gap: 8px; align-items: center; }
+.artist-card{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid #eee;border-radius:10px;margin-bottom:10px;background:#fff}
+.artist-photo{width:64px;height:64px;border-radius:8px;flex:0 0 64px;display:flex;align-items:center;justify-content:center;background:#f3f3f3;color:#333;font-weight:700}
+.artist-photo img{width:100%;height:100%;object-fit:cover;border-radius:6px}
+.artist-meta{flex:1;display:flex;flex-direction:column;gap:6px}
+.artist-meta input, .artist-meta textarea{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px}
+.social-links{display:flex;gap:8px;align-items:center;margin-top:6px}
+.social-links a{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:6px;background:#f3f3ff;color:#333;text-decoration:none;border:1px solid #eee}
+.social-links a .social-icon{font-size:14px;font-weight:700}
+.artist-edit-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.artist-edit-input{padding:6px;border-radius:6px;border:1px solid #ddd}
+.artist-actions{margin-left:12px;display:flex;align-items:flex-start;gap:8px}
+
+/* small helpers */
+.hidden { display: none !important; }
+
+/* ----------------------- */
+/* Admin dropdown menu     */
+/* ----------------------- */
+.admin-menu {
+    position: absolute;
+    top: 40px;
+    right: 0;
+    background: #fff;
+    border: 1px solid #c4b5fd;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(139,92,246,0.15);
+    display: none;
+    z-index: 100;
+    min-width: 160px;
+}
+.admin-menu.open { display: block; }
+.admin-menu .admin-action { width: 100%; text-align: left; padding: 10px 12px; border-radius: 6px; background: transparent; border: none; }
+.admin-menu .admin-action:hover { background: #f3efff; }
+.admin-menu .admin-action { width: 100%; text-align: left; padding: 10px 12px; border-radius: 6px; background: transparent; border: none; color: #1f2937; font-weight: 600; }
+.admin-menu .admin-action:hover { background: #f3efff; color: #0f1720; }
+
+/* Cancel button small spacing */
+.btn-cancel { margin-left: 10px; }
+
+/* Admin table action buttons */
+.admin-actions .btn { margin: 0 0.2em; border-radius: 10px; font-size: 1.08rem; font-weight: 700; padding: 0.5rem 0.8rem; }
+.admin-actions .admin-primary { background: #8b5cf6; color: #fff; box-shadow: 0 2px 12px rgba(139,92,246,0.3); }
+.admin-actions .admin-primary:hover { background: #581c87; }
+.admin-actions .admin-warning { background: #b68c44; color: #fff; }
+.admin-actions .admin-warning:hover { background: #d97706; }
+.admin-actions .admin-danger { background: #f87171; color: #fff; }
+.admin-actions .admin-danger:hover { background: #ef4444; }
+
+/* Tables for admin/audit panels */
+.admin-table, .audit-table { width: 100%; border-collapse: collapse; }
+.admin-table th, .admin-table td, .audit-table th, .audit-table td { padding: 8px 10px; border: 1px solid #e5d9ff; }
+
+/* Back button variant for admin/audit pages */
+.admin-back { margin-top: 20px; background: #8b5cf6; color: #fff; border-radius: 10px; font-size: 1.08rem; font-weight: 700; box-shadow: 0 2px 12px rgba(139,92,246,0.3); border: none; padding: 0.6rem 1rem; }
+
+/* ======================= */
+/* Auth & small utility styles (migrated from styles.css) */
+/* ======================= */
+/* auth background placeholder removed (styles consolidated below) */
+@keyframes gradientBG2 {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+/* Auth container */
+.auth-container {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+}
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; margin-bottom: 0.5rem; color: #555; }
+.form-group input { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+.toast { position: fixed; top: 20px; right: 20px; padding: 12px 24px; border-radius: 4px; color: white; z-index: 1000; animation: fadeIn 0.3s; }
+.toast.error { background: #ff4444; }
+.toast.success { background: #00C851; }
+.auth-container input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
+.login-link { text-align: center; margin-top: 15px; color: #666; }
+.login-link a { color: #2c7be5; text-decoration: none; }
+.auth-container button { width: 100%; padding: 12px; background-color: #2c7be5; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; transition: background-color 0.3s; }
+.auth-container button:hover { background-color: #1a68d1; }
+
+
+
+

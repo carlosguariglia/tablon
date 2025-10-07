@@ -1,60 +1,93 @@
-<!-- Panel de auditoría solo visible para admin -->
-<div id="auditPanel" style="display:none; margin:32px 0;">
-  <h2>Auditoría de acciones</h2>
-  <table id="auditTable" border="1" style="width:100%; border-collapse:collapse;">
-    <thead>
-      <tr>
-        <th>Usuario</th>
-        <th>Email</th>
-        <th>Acción</th>
-        <th>Detalles</th>
-        <th>Fecha</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Auditoría — Tablón</title>
+  <link rel="stylesheet" href="/css/tablon.css">
+</head>
 <body>
-  <div style="margin:32px 0; background:#faf5ff; border-radius:20px; box-shadow:0 4px 32px rgba(88,28,135,0.12); border:1px solid #e5d9ff; padding:2rem;">
-    <h2>Auditoría</h2>
-    <div id="auditLogs"></div>
-  <button id="backToTablon" class="btn" style="margin-top:20px; background:#8b5cf6; color:#fff; border-radius:10px; font-size:1.08rem; font-weight:700; box-shadow:0 2px 12px rgba(139,92,246,0.3); border:none;">← Volver al Tablón</button>
+  <div class="container">
+    <header>
+      <h1>Auditoría</h1>
+      <div id="userHeader"></div>
+      <a href="/pages/login.html" class="btn" id="loginBtn">Ir al Login</a>
+    </header>
+
+    <div id="auditPanel" class="audit-panel">
+      <h2>Registro de auditoría</h2>
+      <div class="admin-actions actions-row">
+        <button id="refreshAudit" class="btn">Actualizar</button>
+        <button id="backToTablon" class="btn admin-back">← Volver al Tablón</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table id="auditTable" class="audit-table">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Email</th>
+              <th>Acción</th>
+              <th>Detalles</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
   </div>
+
+  <script>
+    document.getElementById('backToTablon').onclick = function() {
+      window.location.href = '/pages/tablon.html';
+    };
+
+    async function fetchAuditLogs() {
+      const token = localStorage.getItem('token');
+      try {
+        const res = await fetch('/api/audit', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) {
+          console.error('Error fetching audit logs', res.status);
+          return;
+        }
+        const logs = await res.json();
+        const tbody = document.querySelector('#auditTable tbody');
+        tbody.innerHTML = '';
+        logs.forEach(log => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${log.user_name || ''}</td>
+            <td>${log.user_email || ''}</td>
+            <td>${log.action || ''}</td>
+            <td>${log.details || ''}</td>
+            <td>${new Date(log.timestamp).toLocaleString()}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error('Error loading audit logs', err);
+      }
+    }
+
+    function showAuditPanelIfAdmin() {
+      const userStr = localStorage.getItem('user');
+      if (!userStr) return;
+      let user = null;
+      try { user = JSON.parse(userStr); } catch(e) { return; }
+      // Backwards-compatible admin check: keep previous hardcoded admin or look for role/isAdmin
+      const isAdmin = user && (user.isAdmin || user.role === 'admin' || (user.name === 'admin' && user.email === 'admin@gmail.com'));
+      if (isAdmin) {
+        document.getElementById('auditPanel').style.display = 'block';
+        fetchAuditLogs();
+      } else {
+        // Hide panel and show a friendly message
+        document.getElementById('auditPanel').innerHTML = '<p>No tienes permiso para ver esta página.</p>';
+      }
+    }
+
+    document.getElementById('refreshAudit').addEventListener('click', fetchAuditLogs);
+    document.addEventListener('DOMContentLoaded', showAuditPanelIfAdmin);
+  </script>
 </body>
-<script>
-document.getElementById('backToTablon').onclick = function() {
-  window.location.href = '/pages/tablon.html';
-};
-// Mostrar panel solo si el usuario es admin
-function showAuditPanelIfAdmin() {
-  const user = JSON.parse(localStorage.getItem('user'));
-  if (user && user.name === 'admin' && user.email === 'admin@gmail.com') {
-    document.getElementById('auditPanel').style.display = 'block';
-    fetchAuditLogs();
-  }
-}
-
-async function fetchAuditLogs() {
-  const token = localStorage.getItem('token');
-  const res = await fetch('/api/audit', {
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
-  if (!res.ok) return;
-  const logs = await res.json();
-  const tbody = document.querySelector('#auditTable tbody');
-  tbody.innerHTML = '';
-  logs.forEach(log => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${log.user_name}</td>
-      <td>${log.user_email}</td>
-      <td>${log.action}</td>
-      <td>${log.details || ''}</td>
-      <td>${new Date(log.timestamp).toLocaleString()}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-document.addEventListener('DOMContentLoaded', showAuditPanelIfAdmin);
-</script>
+</html>

@@ -10,19 +10,31 @@
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>Tablón de Anuncios</h1>
-            <div id="userHeader" style="display:flex; align-items:center; gap:10px;"></div>
-            <a href="/pages/login.html" class="btn" id="loginBtn" style="display:inline-block;">Ir al Login</a>
+        <header class="site-header">
+                        <div class="site-title">
+                                                <a href="https://www.facebook.com/UNMARdelplata" target="_blank" rel="noopener noreferrer" title="UNMAR en Facebook">
+                                                    <img src="/assets/images/unmar_logo.jpg" alt="Logo" class="site-logo" />
+                                                </a>
+                                <h1>Tablón de Anuncios</h1>
+                        </div>
+            <div id="userHeader"></div>
+            <a href="/pages/login.html" class="btn" id="loginBtn">Ir al Login</a>
         </header>
 
-        <div id="anuncioFormContainer" style="display:none;"></div>
+    <div id="anuncioFormContainer"></div>
 
         <!-- Filtros -->
         <form id="filtrosForm" class="filtros-form">
             <label>
                 Desde:
                 <input type="date" id="desde" name="desde">
+            </label>
+            <label>
+                Artista:
+                <input type="text" id="artista" name="artista" placeholder="Buscar por artista">
+            </label>
+            <label class="artist-label">
+                <button type="button" id="openArtistBtn" class="btn" >Ver artista</button>
             </label>
             <label>
                 Categoría:
@@ -35,7 +47,7 @@
                 </select>
             </label>
             <button type="submit" class="btn">Filtrar</button>
-            <button type="button" id="resetBtn" class="btn" style="background:#888;">Limpiar</button>
+            <button type="button" id="resetBtn" class="btn">Limpiar</button>
         </form>
 
         <div id="loadingState" class="loading-state">
@@ -45,14 +57,14 @@
 
         <div id="calendarioContainer" class="calendario-container"></div>
 
-        <div id="errorState" class="error-state" style="display: none;">
+    <div id="errorState" class="error-state">
             <h3>Error al cargar anuncios</h3>
             <p id="errorMessage"></p>
             <button onclick="window.location.reload()" class="btn">Reintentar</button>
         </div>
 
         <!-- Pop-up -->
-        <div id="popup" class="popup" style="display:none;">
+    <div id="popup" class="popup">
             <div class="popup-content">
                 <span id="popupClose" class="popup-close">&times;</span>
                 <div id="popupBody"></div>
@@ -60,9 +72,9 @@
         </div>
 
         <!-- Formulario de edición de anuncio (modal) -->
-        <div id="editModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:2000; justify-content:center; align-items:center;">
-          <div style="background:#fff; padding:24px; border-radius:8px; min-width:300px; position:relative;">
-            <span id="editModalClose" style="position:absolute; top:8px; right:12px; cursor:pointer; font-size:24px;">&times;</span>
+                <div id="editModal" class="modal">
+                    <div>
+                        <span id="editModalClose">&times;</span>
             <h2>Editar anuncio</h2>
             <form id="editAnuncioForm">
               <input type="text" id="editTitulo" name="titulo" placeholder="Título" required><br>
@@ -235,6 +247,29 @@
             autorP.appendChild(document.createTextNode(anuncio.autor));
             body.appendChild(autorP);
 
+            // Botón para mostrar la semana del evento en el calendario principal
+            const verCalendarioBtn = document.createElement('button');
+            verCalendarioBtn.className = 'btn';
+            verCalendarioBtn.textContent = 'Ver en calendario';
+            verCalendarioBtn.onclick = () => {
+                try {
+                    const d = new Date(anuncio.fecha);
+                    const yyyy = d.getFullYear();
+                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    const desdeStr = `${yyyy}-${mm}-${dd}`;
+                    // set the date input so the UI reflects the change
+                    const desdeInput = document.getElementById('desde');
+                    if (desdeInput) desdeInput.value = desdeStr;
+                    // cerrar popup y pedir recarga del calendario para esa semana
+                    document.getElementById('popup').style.display = 'none';
+                    fetchAnuncios({ desde: desdeStr });
+                } catch (e) {
+                    console.error('Error al abrir calendario:', e);
+                }
+            };
+            body.appendChild(verCalendarioBtn);
+
             popup.style.display = 'flex';
         }
         document.getElementById('popupClose').onclick = function() {
@@ -294,7 +329,7 @@
 
                 const showBtn = document.createElement('button');
                 showBtn.id = 'showAnuncioFormBtn';
-                showBtn.className = 'btn';
+                showBtn.className = 'btn user-action-btn primary';
                 showBtn.textContent = 'Crear anuncio';
                 userHeaderDiv.appendChild(showBtn);
 
@@ -302,39 +337,37 @@
                 if (user.is_admin) {
                     // Botón engranaje
                     const gearBtn = document.createElement('button');
-                    gearBtn.className = 'btn';
-                    gearBtn.innerHTML = '<span style="font-size:22px;">&#9881;</span>';
+                    gearBtn.className = 'btn user-action-btn primary gear';
+                    // gear icon is provided via CSS ::before so no innerHTML required
                     gearBtn.style.position = 'relative';
                     userHeaderDiv.appendChild(gearBtn);
 
                     // Menú desplegable
                     const menu = document.createElement('div');
-                    menu.style.position = 'absolute';
-                    menu.style.top = '40px';
-                    menu.style.right = '0';
-                    menu.style.background = '#fff';
-                    menu.style.border = '1px solid #c4b5fd';
-                    menu.style.borderRadius = '8px';
-                    menu.style.boxShadow = '0 2px 8px rgba(139,92,246,0.15)';
-                    menu.style.display = 'none';
-                    menu.style.zIndex = '100';
-                    menu.style.minWidth = '160px';
+                    menu.className = 'admin-menu';
 
                     // Opción Ver auditoría
                     const auditOption = document.createElement('button');
-                    auditOption.className = 'btn';
+                    auditOption.className = 'btn admin-action';
                     auditOption.textContent = 'Ver auditoría';
-                    auditOption.style.width = '100%';
                     auditOption.onclick = function() {
                         window.location.href = '/pages/audit.html';
                     };
                     menu.appendChild(auditOption);
 
+                    // Opción Gestionar artistas (admin)
+                    const artistsOption = document.createElement('button');
+                    artistsOption.className = 'btn admin-action';
+                    artistsOption.textContent = 'Gestionar artistas';
+                    artistsOption.onclick = function() {
+                        window.location.href = '/pages/admin-artists.html';
+                    };
+                    menu.appendChild(artistsOption);
+
                     // Opción Adm Usuarios
                     const usersOption = document.createElement('button');
-                    usersOption.className = 'btn';
+                    usersOption.className = 'btn admin-action';
                     usersOption.textContent = 'Adm Usuarios';
-                    usersOption.style.width = '100%';
                     usersOption.onclick = function() {
                         window.location.href = '/pages/admin.html';
                     };
@@ -343,16 +376,16 @@
                     gearBtn.appendChild(menu);
                     gearBtn.onclick = function(e) {
                         e.stopPropagation();
-                        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+                        menu.classList.toggle('open');
                     };
                     document.addEventListener('click', function() {
-                        menu.style.display = 'none';
+                        menu.classList.remove('open');
                     });
                 }
 
                 const logoutBtn = document.createElement('button');
                 logoutBtn.id = 'logoutBtn';
-                logoutBtn.className = 'btn';
+                logoutBtn.className = 'btn user-action-btn logout';
                 logoutBtn.textContent = 'Cerrar sesión';
                 userHeaderDiv.appendChild(logoutBtn);
 
@@ -425,13 +458,61 @@
                 form.appendChild(precio);
                 form.appendChild(document.createElement('br'));
 
-                const participantes = document.createElement('input');
-                participantes.type = 'text';
-                participantes.id = 'participantes';
-                participantes.name = 'participantes';
-                participantes.placeholder = 'Participantes';
-                participantes.title = 'Participantes';
-                form.appendChild(participantes);
+                                // participantes input with suggestions from existing artists
+                                const participantes = document.createElement('input');
+                                participantes.type = 'text';
+                                participantes.id = 'participantes';
+                                participantes.name = 'participantes';
+                                participantes.placeholder = 'Participantes (sugerencias disponibles)';
+                                participantes.title = 'Participantes';
+                                participantes.setAttribute('list', 'artistsSuggest');
+                                form.appendChild(participantes);
+                                const dl = document.createElement('datalist');
+                                dl.id = 'artistsSuggest';
+                                form.appendChild(dl);
+
+                                // Debounced fetch for artist suggestions
+                                let suggestTimer = null;
+                                participantes.addEventListener('input', function() {
+                                    const q = this.value.trim();
+                                    if (suggestTimer) clearTimeout(suggestTimer);
+                                    if (!q) return;
+                                    suggestTimer = setTimeout(async () => {
+                                        try {
+                                            const res = await fetch(`/api/artistas?name=${encodeURIComponent(q)}`);
+                                            if (!res.ok) return;
+                                            const data = await res.json();
+                                            const list = document.getElementById('artistsSuggest');
+                                            while (list.firstChild) list.removeChild(list.firstChild);
+                                                                    if (data && data.matches && data.matches.length) {
+                                                                        data.matches.forEach(m => {
+                                                                            const opt = document.createElement('option');
+                                                                            opt.value = m.name;
+                                                                            list.appendChild(opt);
+                                                                        });
+                                                                    } else if (data && data.artist) {
+                                                                        const opt = document.createElement('option'); opt.value = data.artist; list.appendChild(opt);
+                                                                    } else if (data && Array.isArray(data.posts) && data.posts.length) {
+                                                                        // fallback: extract participantes from posts (comma-separated) and add unique suggestions
+                                                                        const seen = new Set();
+                                                                        data.posts.forEach(p => {
+                                                                            if (!p.participantes) return;
+                                                                            // participantes might be a comma-separated string
+                                                                            const parts = String(p.participantes).split(',').map(s => s.trim()).filter(Boolean);
+                                                                            parts.forEach(name => {
+                                                                                const n = name.replace(/\s+/g,' ').trim();
+                                                                                if (n && !seen.has(n)) {
+                                                                                    seen.add(n);
+                                                                                    const opt = document.createElement('option'); opt.value = n; list.appendChild(opt);
+                                                                                }
+                                                                            });
+                                                                        });
+                                                                    }
+                                        } catch (e) {
+                                            // ignore silently
+                                        }
+                                    }, 300);
+                                });
                 form.appendChild(document.createElement('br'));
 
                 const categoria = document.createElement('select');
@@ -459,7 +540,7 @@
                 cancelBtn.type = 'button';
                 cancelBtn.className = 'btn';
                 cancelBtn.textContent = 'Cerrar formulario';
-                cancelBtn.style.marginLeft = '10px';
+                cancelBtn.classList.add('btn-cancel');
                 form.appendChild(cancelBtn);
 
                 anuncioFormContainer.appendChild(form);
@@ -672,15 +753,32 @@
             const dd = String(hoy.getDate()).padStart(2, '0');
             const hoyStr = `${yyyy}-${mm}-${dd}`;
             document.getElementById('desde').value = hoyStr;
-            fetchAnuncios({ desde: hoyStr });
+            // Incluir artista si ya hay valor en el input
+            const artista = document.getElementById('artista') ? document.getElementById('artista').value : '';
+            fetchAnuncios({ desde: hoyStr, artista });
             renderUserInfoAndForm();
+
+            // Botón para abrir ficha del artista en nueva ventana
+            const openArtistBtn = document.getElementById('openArtistBtn');
+            if (openArtistBtn) {
+                openArtistBtn.onclick = function() {
+                    const artistaInput = document.getElementById('artista').value.trim();
+                    if (!artistaInput) {
+                        alert('Ingresa el nombre del artista en el campo "Artista" antes de abrir la ficha.');
+                        return;
+                    }
+                    const url = `/pages/artist.html?name=${encodeURIComponent(artistaInput)}`;
+                    window.open(url, '_blank', 'width=900,height=700');
+                };
+            }
         });
 
         document.getElementById('filtrosForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const desde = document.getElementById('desde').value;
+            const artista = document.getElementById('artista').value;
             const categoria = document.getElementById('categoria').value;
-            fetchAnuncios({ desde, categoria });
+            fetchAnuncios({ desde, artista, categoria });
         });
 
         document.getElementById('resetBtn').addEventListener('click', function() {

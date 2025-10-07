@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Artista — Tablón</title>
+  <link rel="stylesheet" href="/css/tablon.css">
+  <style>
+    /* small overrides local to this page */
+    .artist-header { display:flex;align-items:center;justify-content:space-between;gap:12px }
+    .artist-info { margin: 12px 0; padding: 12px; background:#fff;border-radius:8px;border:1px solid #eee }
+    .posts-list { margin-top:12px; display:flex;flex-direction:column; gap:10px }
+    .post-card { background:#fff;padding:12px;border-radius:8px;border:1px solid #eee }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Ficha del artista</h1>
+  <div id="userHeader"></div>
+  <button class="btn" id="backBtn">Ir al Tablón</button>
+    </header>
+
+    <div class="filtros-form" style="margin-top:12px;">
+      <label>
+        Buscar artista:
+        <input id="searchName" type="text" placeholder="Escribe nombre o parte del nombre" />
+      </label>
+      <button id="searchBtn" class="btn">Buscar</button>
+    </div>
+
+    <div id="artistResult">
+      <!-- rendered content -->
+    </div>
+  </div>
+
+  <script>
+    function q(name) {
+      try { return new URLSearchParams(window.location.search).get(name) || ''; } catch(e){ return ''; }
+    }
+
+    async function loadArtist(name) {
+      const container = document.getElementById('artistResult');
+      container.innerHTML = '<div class="loading-state"><div class="spinner"></div><div>Cargando...</div></div>';
+      if (!name) {
+        container.innerHTML = '<div class="error-state">Ingresa un nombre para buscar un artista.</div>';
+        return;
+      }
+      try {
+        const res = await fetch(`/api/artistas?name=${encodeURIComponent(name)}`);
+        if (!res.ok) {
+          container.innerHTML = `<div class="error-state">Error al buscar artista (${res.status}).</div>`;
+          return;
+        }
+        const data = await res.json();
+        // If API returns matches (multiple artists), show selectable list
+        if (data && data.matches && data.matches.length > 0) {
+          container.innerHTML = '<div class="artist-info"><h3>Coincidencias encontradas</h3><div id="matchList"></div></div>';
+          const matchList = document.getElementById('matchList');
+          data.matches.forEach(m => {
+            const btn = document.createElement('button');
+            btn.className = 'btn';
+            btn.textContent = m.name + (m.bio ? ` — ${m.bio.substring(0,80)}` : '');
+            btn.onclick = () => { document.getElementById('searchName').value = m.name; history.replaceState(null,'',`/pages/artist.html?name=${encodeURIComponent(m.name)}`); loadArtist(m.name); };
+            matchList.appendChild(btn);
+          });
+          return;
+        }
+
+        // Single artist object with metadata and posts (or metadata-only)
+        if (!data || !data.posts || data.posts.length === 0) {
+          // If metadata is present, show it along with social links if any
+          if (data && (data.bio || data.spotify || data.youtube || data.instagram || data.whatsapp || data.threads || data.tiktok || data.website || data.email || data.phone)) {
+            // show photo if available and name/bio
+            let html = `<div class="artist-info">`;
+            if (data.photo) {
+              html += `<div class="artist-header"><div class="artist-photo"><img src="${data.photo}" alt="${data.artist}" loading="lazy" onerror="this.onerror=null;this.src='/assets/icons/playing_music.svg'"/></div><div class="artist-meta"><h2>${data.artist}</h2>`;
+              if (data.bio) html += `<p><strong>Bio:</strong> ${data.bio}</p>`;
+              html += `</div></div>`;
+            } else {
+              html += `<h2>${data.artist}</h2>`;
+              if (data.bio) html += `<p><strong>Bio:</strong> ${data.bio}</p>`;
+            }
+            // socials with icons
+            const iconMap = {
+              spotify: '/assets/icons/spotify.svg',
+              youtube: '/assets/icons/youtube.svg',
+              whatsapp: '/assets/icons/whatsapp.svg',
+              instagram: '/assets/icons/instagram.svg',
+              threads: '/assets/icons/threads.svg',
+              tiktok: '/assets/icons/tiktok.svg',
+              bandcamp: '/assets/icons/bandcamp.svg',
+              website: '/assets/icons/website.svg',
+              email: '/assets/icons/email.svg',
+              phone: '/assets/icons/phone.svg',
+              facebook: '/assets/icons/facebook.svg'
+            };
+            const socials = ['spotify','youtube','whatsapp','instagram','threads','tiktok','bandcamp','website','email','phone','facebook'];
+            const socialHtml = socials.filter(s => data[s]).map(s => {
+              const href = s === 'email' ? `mailto:${data[s]}` : (s === 'phone' ? `tel:${data[s]}` : data[s]);
+              const icon = iconMap[s] ? `<img src="${iconMap[s]}" alt="${s}" />` : '';
+              return `<a class="social-link" href="${href}" target="_blank" rel="noopener noreferrer">${icon}<span class="social-label">${s}</span></a>`;
+            }).join('');
+            if (socialHtml) html += `<div class="social-block"><div class="social-label-title">Redes:</div><div class="social-items">${socialHtml}</div></div>`;
+            html += `</div>`;
+            container.innerHTML = html;
+            return;
+          }
+          container.innerHTML = `<div class="artist-info">No se encontraron anuncios para "${name}".</div>`;
+          return;
+        }
+
+        // render artist header
+        const html = [];
+        html.push(`<div class="artist-info">`);
+        // photo + name area
+          if (data.photo) {
+          html.push(`<div class="artist-header"><div class="artist-photo"><img src="${data.photo}" alt="${data.artist}" loading="lazy" onerror="this.onerror=null;this.src='/assets/icons/playing_music.svg'"/></div><div class="artist-meta"><h2>${data.artist}</h2>`);
+          if (data.bio) html.push(`<p><strong>Sinopsis:</strong> ${data.bio}</p>`);
+          html.push(`</div></div>`);
+        } else {
+          html.push(`<h2>${data.artist}</h2>`);
+          if (data.bio) html.push(`<p><strong>Sinopsis:</strong> ${data.bio}</p>`);
+        }
+        html.push(`<p><strong>Total de publicaciones:</strong> ${data.totalPosts}</p>`);
+        if (data.categorias) {
+          html.push('<p><strong>Categorías:</strong> ' + Object.entries(data.categorias).map(([k,v])=>`${k} (${v})`).join(', ') + '</p>');
+        }
+        // socials with icons (same map as above)
+        const iconMap = {
+          spotify: '/assets/icons/spotify.svg',
+          youtube: '/assets/icons/youtube.svg',
+          whatsapp: '/assets/icons/whatsapp.svg',
+          instagram: '/assets/icons/instagram.svg',
+          threads: '/assets/icons/threads.svg',
+          tiktok: '/assets/icons/tiktok.svg',
+          bandcamp: '/assets/icons/bandcamp.svg',
+          website: '/assets/icons/website.svg',
+          playing_music: '/assets/icons/playing_music.svg',
+          email: '/assets/icons/email.svg',
+          phone: '/assets/icons/phone.svg',
+          facebook: '/assets/icons/facebook.svg'
+        };
+        const socials = ['spotify','youtube','whatsapp','instagram','threads','tiktok','bandcamp','website','email','phone','facebook'];
+        const socialHtml = socials.filter(s => data[s]).map(s => {
+          const href = s === 'email' ? `mailto:${data[s]}` : (s === 'phone' ? `tel:${data[s]}` : data[s]);
+          const icon = iconMap[s] ? `<img src="${iconMap[s]}" alt="${s}" />` : '';
+          return `<a class="social-link" href="${href}" target="_blank" rel="noopener noreferrer">${icon}<span class="social-label">${s}</span></a>`;
+        }).join('');
+  if (socialHtml) html.push(`<div class="social-block"><div class="social-label-title">Redes:</div><div class="social-items">${socialHtml}</div></div>`);
+        html.push('</div>');
+
+        html.push('<div class="posts-list">');
+        data.posts.forEach(p => {
+          const precioText = (p.precio !== null && p.precio !== undefined && p.precio !== '') ? (`$${Number(p.precio).toFixed(2)}`) : 'Gratis';
+          // add a 'Ver en calendario' button that will try to instruct the opener to show the week, or redirect to tablon
+          html.push(`<div class="post-card"><h3>${p.titulo}</h3><p><strong>Fecha:</strong> ${new Date(p.fecha).toLocaleString()}</p><p><strong>Lugar:</strong> ${p.lugar || '—'}</p><p><strong>Precio:</strong> ${precioText}</p><p>${p.descripcion || ''}</p><p><button class="btn" onclick="openInCalendar('${p.fecha}')">Ver en calendario</button></p></div>`);
+        });
+        html.push('</div>');
+
+        container.innerHTML = html.join('');
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = '<div class="error-state">Error de conexión al buscar artista.</div>';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const nameParam = q('name');
+      if (nameParam) {
+        document.getElementById('searchName').value = nameParam;
+        loadArtist(nameParam);
+      }
+      document.getElementById('searchBtn').addEventListener('click', () => {
+        const v = document.getElementById('searchName').value.trim();
+        if (v) {
+          // update URL and reload
+          history.replaceState(null, '', `/pages/artist.html?name=${encodeURIComponent(v)}`);
+          loadArtist(v);
+        }
+      });
+      // Back button: close window if it was opened by the Tablón (window.open), otherwise navigate
+      const backBtn = document.getElementById('backBtn');
+      if (backBtn) {
+        backBtn.addEventListener('click', (e) => {
+          // If this window was opened by a script (window.open), window.opener will be set
+          if (window.opener) {
+            // Try to close this window/tab
+            window.close();
+            // As a fallback (some browsers block close), navigate back
+            setTimeout(() => { if (!window.closed) window.location.href = '/pages/tablon.html'; }, 300);
+          } else {
+            window.location.href = '/pages/tablon.html';
+          }
+        });
+      }
+    });
+
+    // Helper used by 'Ver en calendario' buttons on posts
+    function openInCalendar(fechaIso) {
+      try {
+        const d = new Date(fechaIso);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const desdeStr = `${yyyy}-${mm}-${dd}`;
+        // If opened from the tablon via window.open, notify opener to change week
+        if (window.opener && !window.opener.closed && typeof window.opener.fetchAnuncios === 'function') {
+          // set the desde input in opener and call fetchAnuncios
+          try { window.opener.document.getElementById('desde').value = desdeStr; } catch(e) {}
+          try { window.opener.fetchAnuncios({ desde: desdeStr }); } catch(e) {}
+          // close this window
+          window.close();
+          return;
+        }
+        // Fallback: redirect to tablon with desde set
+        window.location.href = `/pages/tablon.html?desde=${encodeURIComponent(desdeStr)}`;
+      } catch (e) {
+        console.error('openInCalendar error', e);
+        window.location.href = '/pages/tablon.html';
+      }
+    }
+  </script>
+</body>
+</html>
