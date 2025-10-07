@@ -54,8 +54,6 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Servir imagenes y iconos ubicados en la carpeta raíz `iconos_redes_sociales`
 app.use('/iconos_redes_sociales', express.static(path.join(__dirname, '..', 'iconos_redes_sociales')));
-// Expose assets/images path mapped to the existing icon folder (no move needed)
-app.use('/assets/images', express.static(path.join(__dirname, '..', 'iconos_redes_sociales')));
 
 // Rutas API
 app.use('/api/auth', authLimiter, authRoutes);
