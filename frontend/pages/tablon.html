@@ -239,7 +239,10 @@
 
             const precioP = document.createElement('p');
             precioP.innerHTML = '<strong>Precio:</strong> ';
-            precioP.appendChild(document.createTextNode(anuncio.precio !== null ? `$${anuncio.precio.toFixed(2)}` : 'Gratis'));
+            // Asegurarse de formatear correctamente aunque precio venga como string
+            const precioNum = Number(anuncio.precio);
+            const precioText = (anuncio.precio === null || anuncio.precio === undefined || anuncio.precio === '' || isNaN(precioNum)) ? 'Gratis' : `$${precioNum.toFixed(2)}`;
+            precioP.appendChild(document.createTextNode(precioText));
             body.appendChild(precioP);
 
             const autorP = document.createElement('p');
