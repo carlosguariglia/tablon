@@ -1,8 +1,16 @@
+// Cargar variables de entorno del backend específicamente
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const { query } = require('../config/db');
-require('dotenv').config();
 
 async function createDatabase() {
   try {
+    // Ensure we have a database name (fallback to tablon_db)
+    const dbName = process.env.DB_NAME || 'tablon_db';
+    // Create the database if it doesn't exist and select it
+    await query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
+    await query(`USE \`${dbName}\``);
+    console.log(`Using database: ${dbName}`);
     // Crear tabla de usuarios (igual a tu versión actual)
     await query(`
       CREATE TABLE IF NOT EXISTS users (
@@ -152,6 +160,46 @@ async function createDatabase() {
       )
     `);
     console.log('✅ Tabla anuncio_artistas creada exitosamente');
+
+    // Tabla para solicitudes de creación de artista enviadas por usuarios
+    await query(`
+      CREATE TABLE IF NOT EXISTS artist_requests (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        nombre VARCHAR(150) NOT NULL,
+        bio TEXT,
+        genero VARCHAR(80),
+        social_links JSON,
+        image_urls JSON,
+        muestras JSON,
+        notas_usuario TEXT,
+        status ENUM('pending','approved','rejected','archived') DEFAULT 'pending',
+        admin_id INT,
+        admin_notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        reviewed_at TIMESTAMP NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        INDEX idx_artist_requests_user (user_id),
+        INDEX idx_artist_requests_status (status)
+      )
+    `);
+    console.log('✅ Tabla artist_requests creada exitosamente');
+
+    // Tabla para notificaciones in-app
+    await query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        type VARCHAR(30) DEFAULT 'info',
+        title VARCHAR(200),
+        message TEXT,
+        metadata JSON,
+        is_read BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+    console.log('✅ Tabla notifications creada exitosamente');
 
     // Asegurar columnas nuevas en artists (para migraciones sin recrear la tabla)
     const colsToAdd = [

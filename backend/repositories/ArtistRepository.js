@@ -6,26 +6,34 @@ class ArtistRepository {
     const sql = `INSERT INTO artists (name, bio, photo, spotify, youtube, whatsapp, instagram, threads, tiktok, bandcamp, website, email, phone, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`;
     const result = await query(sql, [name, bio, photo, spotify, youtube, whatsapp, instagram, threads, tiktok, bandcamp, website, email, phone]);
-    return result.insertId || (result[0] && result[0].insertId) || null;
+    const insertId = result.insertId || (result[0] && result[0].insertId) || null;
+    return insertId != null ? Number(insertId) : null;
   }
 
   async findByName(name) {
     const sql = 'SELECT * FROM artists WHERE name = ? LIMIT 1';
     const results = await query(sql, [name]);
-    return results[0] && results[0][0];
+    const row = results[0] && results[0][0];
+    if (!row) return null;
+    for (const k of Object.keys(row)) if (typeof row[k] === 'bigint') row[k] = Number(row[k]);
+    return row;
   }
 
   async findByNameLike(name) {
     const sql = 'SELECT * FROM artists WHERE LOWER(name) LIKE LOWER(?) ORDER BY name ASC';
     const param = `%${name}%`;
     const results = await query(sql, [param]);
-    return results[0] || [];
+    const rows = results[0] || [];
+    return rows.map(r => { for (const k of Object.keys(r)) if (typeof r[k] === 'bigint') r[k] = Number(r[k]); return r; });
   }
 
   async findById(id) {
     const sql = 'SELECT * FROM artists WHERE id = ? LIMIT 1';
     const results = await query(sql, [id]);
-    return results[0] && results[0][0];
+    const row = results[0] && results[0][0];
+    if (!row) return null;
+    for (const k of Object.keys(row)) if (typeof row[k] === 'bigint') row[k] = Number(row[k]);
+    return row;
   }
 
   async upsertMany(names = []) {

@@ -29,9 +29,20 @@ function sanitizeObject(obj, fields) {
   return sanitized;
 }
 
+function validateUrl(url) {
+  if (!url) return false;
+  try {
+    // Use validator and allow only http/https
+    return validator.isURL(String(url), { protocols: ['http','https'], require_protocol: true, allow_underscores: false });
+  } catch (e) {
+    return false;
+  }
+}
+
 module.exports = {
   sanitizeString,
   validateEmail,
   validatePassword,
-  sanitizeObject
+  sanitizeObject,
+  validateUrl
 };

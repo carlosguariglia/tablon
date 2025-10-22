@@ -67,6 +67,12 @@ const artistaRoutes = require('./routes/artistaRoutes');
 app.use('/api/artistas', artistaRoutes);
 const artistAdminRoutes = require('./routes/artistAdminRoutes');
 app.use('/api/admin/artistas', artistAdminRoutes);
+const artistRequestRoutes = require('./routes/artistRequestRoutes');
+app.use('/api/artist-requests', artistRequestRoutes);
+const adminArtistRequestRoutes = require('./routes/adminArtistRequestRoutes');
+app.use('/api/admin/artist-requests', adminArtistRequestRoutes);
+const notificationRoutes = require('./routes/notificationRoutes');
+app.use('/api/notifications', notificationRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

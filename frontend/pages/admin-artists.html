@@ -19,24 +19,37 @@
 
     <section id="createSection">
       <h3>Nuevo Artista</h3>
-      <div class="create-row">
-        <input id="newName" type="text" placeholder="Nombre del artista" />
-        <input id="newPhoto" type="text" placeholder="URL pequeña foto (imagen pública)" />
-        <textarea id="newBio" rows="2" placeholder="Sinopsis / bio (opcional)" style="min-width:320px"></textarea>
-      </div>
-      <div class="create-row" style="margin-top:8px;flex-wrap:wrap;">
-        <input id="newSpotify" type="text" placeholder="Spotify (URL)" />
-        <input id="newYoutube" type="text" placeholder="YouTube (URL)" />
-        <input id="newWhatsapp" type="text" placeholder="WhatsApp (URL)" />
-        <input id="newInstagram" type="text" placeholder="Instagram (URL)" />
-        <input id="newThreads" type="text" placeholder="Threads (URL)" />
-        <input id="newTiktok" type="text" placeholder="TikTok (URL)" />
-    <input id="newBandcamp" type="text" placeholder="Bandcamp (URL)" />
-        <input id="newWebsite" type="text" placeholder="Página web (URL)" />
-        <input id="newEmail" type="email" placeholder="Email" />
-        <input id="newPhone" type="text" placeholder="Teléfono" />
-        <button id="createBtn" class="btn primary">Crear</button>
-      </div>
+      <form id="createArtistForm">
+        <label>Nombre del artista <span style="color: #dc2626;">*</span></label>
+        <input id="newName" type="text" placeholder="Ej: Juan Pérez" required />
+
+        <label>URL de imagen</label>
+        <input id="newPhoto" type="url" placeholder="https://ejemplo.com/imagen.jpg" />
+        <small style="color: #64748b; display: block; margin-top: 0.25rem;">Imagen del artista</small>
+
+        <label>Biografía</label>
+        <textarea id="newBio" rows="4" placeholder="Escribe una breve biografía del artista..."></textarea>
+
+        <label>Redes sociales</label>
+        <div id="adminSocialLinksContainer">
+          <div class="social-link-row">
+            <input type="text" class="social-platform" placeholder="Red social (ej: Instagram, Facebook, Spotify)" />
+            <input type="url" class="social-url" placeholder="Link (ej: https://instagram.com/...)" />
+          </div>
+        </div>
+        <button type="button" id="addAdminSocialBtn" class="btn-add-social">+ Agregar otra red</button>
+
+        <label>Contacto directo</label>
+        <div class="admin-contact-grid">
+          <input id="newEmail" type="email" placeholder="Email" />
+          <input id="newPhone" type="tel" placeholder="Teléfono" />
+          <input id="newWebsite" type="url" placeholder="Página web (URL)" />
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+          <button type="submit" id="createBtn" class="btn user-action-btn">Crear Artista</button>
+        </div>
+      </form>
     </section>
 
     <hr />

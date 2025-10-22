@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Solicitudes de Artistas (Admin)</title>
+  <link rel="stylesheet" href="/css/tablon.css">
+  <script src="/js/auth.js" defer></script>
+  <script src="/js/admin-artist-requests.js" defer></script>
+  </head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Solicitudes de Artistas</h1>
+      <div style="margin-top:8px;">
+        <button id="backToTablon" class="btn user-action-btn">Volver al Tablón</button>
+      </div>
+    </header>
+    <main>
+      <div id="list"></div>
+      <div id="pagination" style="display:flex; gap:8px; align-items:center; margin-top:12px;">
+        <button id="prevPage" class="btn user-action-btn">Anterior</button>
+        <span id="pageInfo">Página 1</span>
+        <button id="nextPage" class="btn user-action-btn">Siguiente</button>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

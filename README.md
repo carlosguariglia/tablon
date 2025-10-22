@@ -97,3 +97,73 @@ se debe crear una base de datos y un usuario antes de usarlo.
 - El sistema está preparado para ampliaciones (más campos, roles, etc).
 # Tablón - Sistema de Autenticación
 
+## Nueva funcionalidad: Sugerir creación de artistas (artist-requests)
+
+Permite que cualquier usuario autenticado envíe una solicitud para que el administrador cree la página de un artista. Las solicitudes son revisadas por el admin, que puede aprobar o rechazar.
+
+### Endpoints principales
+
+- POST /api/artist-requests
+	- Autenticación: Bearer token
+	- Body (application/json):
+		{
+			"nombre": "Nombre del artista",            // required
+			"bio": "Texto opcional",
+			"social_links": [{"platform":"instagram","url":"https://..."}], // o un objeto de key=>url
+			"image_urls": ["https://...", "https://..."], // máximo 5 URLs, deben ser http(s)
+			"muestras": ["https://..."],
+			"notas_usuario": "Mensaje breve al admin"
+		}
+	- Responses:
+		- 201 Created: { message: 'Solicitud creada', id }
+		- 400 Bad Request: validación
+		- 401 Unauthorized
+		- 429 Too Many Requests: límite (3 solicitudes / 24h)
+
+- GET /api/admin/artist-requests
+	- Admin only. Params: page, per_page
+	- Devuelve lista paginada de solicitudes
+
+- GET /api/admin/artist-requests/:id
+	- Admin only. Devuelve detalle de la solicitud
+
+- POST /api/admin/artist-requests/:id/approve
+	- Admin only. Body: { admin_notes?: string }
+	- Aprueba la solicitud y crea el artista (reusa la lógica existente). Notifica al usuario.
+
+- POST /api/admin/artist-requests/:id/reject
+	- Admin only. Body: { reason?: string }
+	- Marca la solicitud como 'rejected' y notifica al usuario.
+
+### DB (esquema relevante)
+
+Tabla `artist_requests` (creada en `backend/scripts/createDb.js`):
+- id, user_id, nombre, bio, genero, social_links (JSON), image_urls (JSON), muestras (JSON), notas_usuario, status, admin_id, admin_notes, created_at, reviewed_at
+
+Tabla `notifications` (creada por la nueva migración):
+- id, user_id, type, title, message, metadata (JSON), is_read, created_at
+
+### Notificaciones
+- Al aprobar/rechazar una solicitud, el sistema crea una notificación in-app para el usuario. Opcionalmente puede enviar un email si configuras SMTP (variables de entorno: SMTP_HOST, SMTP_USER, SMTP_PASS, SMTP_PORT, SMTP_FROM).
+
+### Seguridad y límites
+- Sólo se aceptan URLs `http` o `https` en `image_urls` y `social_links`.
+- Límite cliente: máximo 5 image_urls.
+- Límite servidor por usuario: máximo 3 solicitudes en 24 horas.
+
+### Cómo probar manualmente (sin UI)
+- Ejemplo curl (reemplaza <TOKEN>):
+```
+curl -X POST http://localhost:3000/api/artist-requests \
+	-H "Authorization: Bearer <TOKEN>" \
+	-H "Content-Type: application/json" \
+	-d '{"nombre":"Artista Demo","bio":"Bio","image_urls":["https://example.com/img.jpg"]}'
+```
+
+### Notas para deploy
+- Ejecuta `node backend/scripts/createDb.js` para asegurarte que las tablas existen.
+- Configura SMTP solo si quieres emails; la funcionalidad en DB (notificaciones) funcionará aunque SMTP no esté presente.
+
+---
+
+

@@ -377,18 +377,26 @@ header h1 {
 
 /* Reglas para botones de acciones de usuario (moved from inline styles in tablon.html) */
 .user-action-btn {
-    height: 48px;
-    min-width: 140px;
-    padding: 10px 16px;
+    /* Force identical box model for anchors and buttons */
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    border-radius: 8px;
-    font-size: 18px;
-    font-weight: 600;
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    height: 48px;
+    min-width: 140px;
+    padding: 0.7rem 1.5rem; /* match .btn padding */
+    line-height: 1;
+    border-radius: 10px; /* match .btn */
+    font-size: 1.08rem; /* match .btn */
+    font-weight: 700; /* match .btn */
     cursor: pointer;
     border: none;
+    text-decoration: none; /* anchors should not underline */
+    color: #fff; /* ensure color consistency for primary variant */
+    box-shadow: 0 2px 12px rgba(139,92,246,0.3); /* match .btn */
+    transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
 }
 .user-action-btn.primary { background: #8b5cf6; color: #fff; }
 .user-action-btn.logout { background: #b68c44; color: #fff; }
@@ -396,6 +404,46 @@ header h1 {
 @media (max-width:420px){
     .user-action-btn{ min-width:96px; height:40px; }
     .user-action-btn.gear{ display:inline-flex; width:44px; min-width:44px; }
+}
+
+/* Ensure anchor-based user-action-btns behave like buttons (no anchor-specific padding/line-height differences) */
+.user-action-btn[href] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hover parity with .btn */
+.user-action-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 24px rgba(139,92,246,0.4);
+    background: #581c87;
+}
+
+/* Smaller font size for "Sugerir artista" button with text on two lines */
+.user-action-btn.suggest-btn {
+    display: inline-flex; /* Usar flex para apilar las líneas - SIN !important para permitir display:none desde JS */
+    flex-direction: column; /* Apilar verticalmente */
+    justify-content: center; /* Centrar verticalmente */
+    align-items: center; /* Centrar horizontalmente */
+    font-size: 0.85rem;
+    padding: 0.35rem 0.6rem;
+    line-height: 1.2;
+    gap: 0; /* Sin espacio entre líneas */
+    color: #fff !important; /* Asegurar color blanco */
+}
+
+/* Usar pseudo-elementos para crear el texto en dos líneas */
+.user-action-btn.suggest-btn::before {
+    content: 'Sugerir';
+    display: block;
+    color: #fff;
+}
+
+.user-action-btn.suggest-btn::after {
+    content: 'Artista';
+    display: block;
+    color: #fff;
 }
 
 /* ======================= */
@@ -560,6 +608,215 @@ header h1 {
 
 /* Back button variant for admin/audit pages */
 .admin-back { margin-top: 20px; background: #8b5cf6; color: #fff; border-radius: 10px; font-size: 1.08rem; font-weight: 700; box-shadow: 0 2px 12px rgba(139,92,246,0.3); border: none; padding: 0.6rem 1rem; }
+
+/* ======================= */
+/* Suggest Artist Form Styles */
+/* ======================= */
+#suggestForm {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(139,92,246,0.15);
+}
+
+#suggestForm label {
+    display: block;
+    font-weight: 600;
+    color: #4a148c;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+#suggestForm input[type="text"],
+#suggestForm input[type="email"],
+#suggestForm textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e9d5ff;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+}
+
+#suggestForm input:focus,
+#suggestForm textarea:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139,92,246,0.1);
+}
+
+#suggestForm textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+#suggestForm textarea#bio {
+    min-height: 120px;
+}
+
+#socialLinksContainer {
+    margin-bottom: 0.5rem;
+}
+
+.social-link-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.social-link-row input {
+    margin: 0;
+}
+
+.btn-add-social {
+    background: #e9d5ff;
+    color: #6b21a8;
+    border: 2px dashed #c084fc;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.btn-add-social:hover {
+    background: #ddd6fe;
+    border-color: #a855f7;
+    color: #581c87;
+}
+
+#suggestForm button[type="submit"] {
+    margin-top: 1.5rem;
+    background: #8b5cf6;
+    color: white;
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(139,92,246,0.4);
+    transition: all 0.3s ease;
+}
+
+#suggestForm button[type="submit"]:hover {
+    background: #7c3aed;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139,92,246,0.5);
+}
+
+#suggestForm button[type="button"] {
+    margin-left: 1rem;
+    background: #64748b;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+#suggestForm button[type="button"]:hover {
+    background: #475569;
+}
+
+#result {
+    max-width: 700px;
+    margin: 1.5rem auto 0;
+    padding: 1rem;
+    text-align: center;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+#result.success {
+    background: #d1fae5;
+    color: #065f46;
+    border: 2px solid #34d399;
+}
+
+#result.error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 2px solid #f87171;
+}
+
+/* ======================= */
+/* Admin Artists Form Styles */
+/* ======================= */
+#createSection {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(139,92,246,0.15);
+}
+
+#createSection h3 {
+    color: #4a148c;
+    margin-bottom: 1.5rem;
+}
+
+#createArtistForm label {
+    display: block;
+    font-weight: 600;
+    color: #4a148c;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+#createArtistForm input[type="text"],
+#createArtistForm input[type="url"],
+#createArtistForm input[type="email"],
+#createArtistForm input[type="tel"],
+#createArtistForm textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e9d5ff;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+}
+
+#createArtistForm input:focus,
+#createArtistForm textarea:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139,92,246,0.1);
+}
+
+.admin-social-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.admin-contact-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .admin-social-grid {
+        grid-template-columns: 1fr;
+    }
+    .admin-contact-grid {
+        grid-template-columns: 1fr;
+    }
+}
 
 /* ======================= */
 /* Auth & small utility styles (migrated from styles.css) */

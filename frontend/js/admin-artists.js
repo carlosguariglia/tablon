@@ -152,21 +152,45 @@ async function deleteArtist(id) {
 
 async function createArtist() {
   if (!ensureAuthOrRedirect()) return;
+  
+  // Build social links from dynamic fields
+  const socialRows = document.querySelectorAll('#adminSocialLinksContainer .social-link-row');
   const payload = {
     name: document.getElementById('newName').value.trim(),
     photo: document.getElementById('newPhoto').value.trim(),
     bio: document.getElementById('newBio').value.trim(),
-    spotify: document.getElementById('newSpotify').value.trim(),
-    youtube: document.getElementById('newYoutube').value.trim(),
-    whatsapp: document.getElementById('newWhatsapp').value.trim(),
-    instagram: document.getElementById('newInstagram').value.trim(),
-    threads: document.getElementById('newThreads').value.trim(),
-    tiktok: document.getElementById('newTiktok').value.trim(),
-    bandcamp: document.getElementById('newBandcamp').value.trim(),
-    website: document.getElementById('newWebsite').value.trim(),
     email: document.getElementById('newEmail').value.trim(),
     phone: document.getElementById('newPhone').value.trim(),
+    website: document.getElementById('newWebsite').value.trim(),
   };
+  
+  // Map social platforms to backend field names
+  const platformMap = {
+    'instagram': 'instagram',
+    'facebook': 'facebook', 
+    'spotify': 'spotify',
+    'youtube': 'youtube',
+    'whatsapp': 'whatsapp',
+    'threads': 'threads',
+    'tiktok': 'tiktok',
+    'bandcamp': 'bandcamp'
+  };
+  
+  socialRows.forEach(row => {
+    const platform = row.querySelector('.social-platform').value.trim().toLowerCase();
+    const url = row.querySelector('.social-url').value.trim();
+    if (platform && url) {
+      // Check if platform matches one of our known fields
+      const fieldName = platformMap[platform] || null;
+      if (fieldName) {
+        payload[fieldName] = url;
+      } else {
+        // If not a known platform, add to website if not set
+        if (!payload.website) payload.website = url;
+      }
+    }
+  });
+  
   if (!payload.name) { showToast('El nombre es requerido'); return; }
   const token = await getToken();
   try {
@@ -178,8 +202,16 @@ async function createArtist() {
     const data = await res.json();
     if (res.ok) {
       showToast('Artista creado', false);
-      // reset fields
-    ['newName','newPhoto','newBio','newSpotify','newYoutube','newWhatsapp','newInstagram','newThreads','newTiktok','newBandcamp','newWebsite','newEmail','newPhone'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+      // Reset form
+      document.getElementById('createArtistForm').reset();
+      // Reset to one social link row
+      const container = document.getElementById('adminSocialLinksContainer');
+      container.innerHTML = `
+        <div class="social-link-row">
+          <input type="text" class="social-platform" placeholder="Red social (ej: Instagram, Facebook, Spotify)" />
+          <input type="url" class="social-url" placeholder="Link (ej: https://instagram.com/...)" />
+        </div>
+      `;
       fetchArtists();
     } else {
       showToast(data.message || 'Error creando artista');
@@ -215,11 +247,35 @@ async function updateArtist(id, payload) {
 
 // Events
 document.addEventListener('DOMContentLoaded', () => {
+  // Add social link row functionality
+  const addAdminSocialBtn = document.getElementById('addAdminSocialBtn');
+  const adminSocialContainer = document.getElementById('adminSocialLinksContainer');
+  
+  if (addAdminSocialBtn && adminSocialContainer) {
+    addAdminSocialBtn.addEventListener('click', () => {
+      const row = document.createElement('div');
+      row.className = 'social-link-row';
+      row.innerHTML = `
+        <input type="text" class="social-platform" placeholder="Red social (ej: Instagram, Facebook, Spotify)" />
+        <input type="url" class="social-url" placeholder="Link (ej: https://instagram.com/...)" />
+      `;
+      adminSocialContainer.appendChild(row);
+    });
+  }
+  
   if (document.getElementById('refreshBtn')) {
     document.getElementById('refreshBtn').addEventListener('click', fetchArtists);
   }
   if (document.getElementById('createBtn')) {
-    document.getElementById('createBtn').addEventListener('click', createArtist);
+    const form = document.getElementById('createArtistForm');
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await createArtist();
+      });
+    } else {
+      document.getElementById('createBtn').addEventListener('click', createArtist);
+    }
   }
   if (document.getElementById('logoutBtn')) {
     document.getElementById('logoutBtn').addEventListener('click', () => {

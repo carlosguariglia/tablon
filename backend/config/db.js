@@ -1,5 +1,7 @@
 const mariadb = require('mariadb');
-require('dotenv').config();
+// Cargar .env específico del backend (evita que al ejecutar desde la raíz no se encuentre)
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const pool = mariadb.createPool({
   host: process.env.DB_HOST,

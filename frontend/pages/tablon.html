@@ -17,7 +17,10 @@
                                                 </a>
                                 <h1>Tablón de Anuncios</h1>
                         </div>
-            <div id="userHeader"></div>
+            <div id="userHeader">
+                <!-- Sugerir artista: oculto por defecto y se ocultará también para admins en JS -->
+                <a href="/pages/suggest-artist.html" id="suggestArtistLink" class="btn user-action-btn primary suggest-btn" style="display:none;"></a>
+            </div>
             <a href="/pages/login.html" class="btn" id="loginBtn">Ir al Login</a>
         </header>
 
@@ -140,6 +143,10 @@
             const grid = document.createElement('div');
             grid.className = 'calendario-grid';
             const user = JSON.parse(localStorage.getItem('user'));
+            // Normalize is_admin: backend may return 0/1 or '0'/'1' or boolean
+            if (user && typeof user.is_admin !== 'boolean') {
+                user.is_admin = (user.is_admin === true || user.is_admin === 1 || user.is_admin === '1');
+            }
             dias.forEach(dia => {
                 const col = document.createElement('div');
                 col.className = 'calendario-dia';
@@ -186,6 +193,19 @@
                 grid.appendChild(col);
             });
             container.appendChild(grid);
+        }
+
+        // Decode a JWT without verifying (client-side) to read payload synchronously
+        function decodeJwt(token) {
+            try {
+                const parts = token.split('.');
+                if (parts.length !== 3) return null;
+                const payload = parts[1];
+                const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+                return JSON.parse(decodeURIComponent(escape(json)));
+            } catch (e) {
+                return null;
+            }
         }
 
         // Función para formatear fechas en formato argentino (dd-mm-yy hh:mm)
@@ -279,6 +299,40 @@
             document.getElementById('popup').style.display = 'none';
         };
 
+        // Verify the stored user against the server-canonical user (fix stale localStorage causing wrong role UI)
+        async function verifyUserFromServer() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            try {
+                const res = await fetch('/api/auth/verify', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (res.status === 401) {
+                    // invalid token: clear stored auth
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    return;
+                }
+                if (!res.ok) return;
+                const data = await res.json().catch(() => null);
+                if (data && data.user) {
+                    // normalize is_admin (DB may store 0/1 or '0'/'1')
+                    const u = data.user;
+                    if (typeof u.is_admin !== 'boolean') {
+                        u.is_admin = (u.is_admin === true || u.is_admin === 1 || u.is_admin === '1');
+                    }
+                    // debug: show canonical user in console
+                    try { console.info('Canonical user from /api/auth/verify:', u); } catch(e){}
+                    localStorage.setItem('user', JSON.stringify(u));
+                }
+            } catch (err) {
+                console.error('Error verifying user with server:', err);
+            }
+        }
+
         // Función para obtener anuncios con filtros
         async function fetchAnuncios(params = {}) {
             let url = '/api/anuncios';
@@ -310,11 +364,47 @@
             const userHeaderDiv = document.getElementById('userHeader');
             const anuncioFormContainer = document.getElementById('anuncioFormContainer');
             const loginBtn = document.getElementById('loginBtn');
-            const user = JSON.parse(localStorage.getItem('user'));
-            // Limpiar header y formulario
-            while (userHeaderDiv.firstChild) userHeaderDiv.removeChild(userHeaderDiv.firstChild);
+            const suggestLink = document.getElementById('suggestArtistLink');
+            let user = null;
+            try { user = JSON.parse(localStorage.getItem('user')); } catch(e) { user = null; }
+            
+            // Normalize is_admin from localStorage user (may be 0/1/'0'/'1'/boolean)
+            if (user && typeof user.is_admin !== 'boolean') {
+                user.is_admin = (user.is_admin === true || user.is_admin === 1 || user.is_admin === '1');
+                try { localStorage.setItem('user', JSON.stringify(user)); } catch(e){}
+            }
+            
+            // Fallback: if no client-stored user, try to decode from token so UI can render synchronously
+            if (!user) {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    const decoded = decodeJwt(token);
+                    if (decoded && decoded.email) {
+                        user = { id: decoded.id, name: decoded.name, email: decoded.email, is_admin: decoded.is_admin };
+                        // normalize
+                        if (typeof user.is_admin !== 'boolean') user.is_admin = (user.is_admin === 1 || user.is_admin === '1' || user.is_admin === true);
+                        try { localStorage.setItem('user', JSON.stringify(user)); } catch(e){}
+                    }
+                }
+            }
+            
+            // Limpiar solo elementos dinámicos del header (mantener el enlace suggestArtistLink)
+            const dynamicElements = userHeaderDiv.querySelectorAll(':not(#suggestArtistLink)');
+            dynamicElements.forEach(el => el.remove());
+            
             while (anuncioFormContainer.firstChild) anuncioFormContainer.removeChild(anuncioFormContainer.firstChild);
+            
+            // Debug: mostrar usuario y estado de admin
             if (user) {
+                console.info('renderUserInfoAndForm - user:', user, 'is_admin:', user.is_admin, 'type:', typeof user.is_admin);
+            }
+            
+            if (user) {
+                // "Sugerir artista" solo visible para usuarios normales (no admin)
+                const shouldShowSuggest = !user.is_admin;
+                
+                console.info('Suggest link element:', suggestLink, 'should show:', shouldShowSuggest);
+                
                 // Header usuario con imagen
                 const span = document.createElement('span');
                 const img = document.createElement('img');
@@ -335,6 +425,15 @@
                 showBtn.className = 'btn user-action-btn primary';
                 showBtn.textContent = 'Crear anuncio';
                 userHeaderDiv.appendChild(showBtn);
+
+                // Agregar "Sugerir artista" después de "Crear anuncio" (solo para usuarios no-admin)
+                if (shouldShowSuggest && suggestLink) {
+                    // Remover del DOM y volver a agregar en el orden correcto
+                    suggestLink.remove();
+                    userHeaderDiv.appendChild(suggestLink);
+                    suggestLink.style.display = 'inline-flex'; // Cambiar a inline-flex para que funcione con los spans
+                    console.info('Set suggest display to:', suggestLink.style.display);
+                }
 
                 // Menú de administración solo para admin
                 if (user.is_admin) {
@@ -357,6 +456,15 @@
                         window.location.href = '/pages/audit.html';
                     };
                     menu.appendChild(auditOption);
+
+                    // Opción Revisar sugerencias de artistas
+                    const requestsOption = document.createElement('button');
+                    requestsOption.className = 'btn admin-action';
+                    requestsOption.textContent = 'Revisar sugerencias';
+                    requestsOption.onclick = function() {
+                        window.location.href = '/pages/admin-artist-requests.html';
+                    };
+                    menu.appendChild(requestsOption);
 
                     // Opción Gestionar artistas (admin)
                     const artistsOption = document.createElement('button');
@@ -612,10 +720,13 @@
                     }
                 };
             } else {
-                // ...existing code...
-                userHeaderDiv.innerHTML = '';
+                // No hay usuario logueado: ocultar ambos botones y limpiar elementos dinámicos
+                const dynamicElements = userHeaderDiv.querySelectorAll(':not(#suggestArtistLink)');
+                dynamicElements.forEach(el => el.remove());
+                
                 if (loginBtn) loginBtn.style.display = 'inline-block';
                 anuncioFormContainer.style.display = 'none';
+                if (suggestLink) suggestLink.style.display = 'none';
             }
         }
 
@@ -759,7 +870,13 @@
             // Incluir artista si ya hay valor en el input
             const artista = document.getElementById('artista') ? document.getElementById('artista').value : '';
             fetchAnuncios({ desde: hoyStr, artista });
-            renderUserInfoAndForm();
+            // Ensure we refresh local user info from server (to avoid stale localStorage causing wrong role UI)
+            verifyUserFromServer().then(() => {
+                try { renderUserInfoAndForm(); } catch (e) { console.error(e); }
+            }).catch(err => {
+                console.error('verifyUserFromServer failed:', err);
+                try { renderUserInfoAndForm(); } catch (e) { console.error(e); }
+            });
 
             // Botón para abrir ficha del artista en nueva ventana
             const openArtistBtn = document.getElementById('openArtistBtn');

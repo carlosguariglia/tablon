@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Sugerir Artista</title>
+  <link rel="stylesheet" href="/css/tablon.css">
+  <script src="/js/auth.js" defer></script>
+  <script src="/js/suggest-artist.js" defer></script>
+  </head>
+<body>
+  <div class="container">
+    <header><h1>Sugerir nuevo artista</h1></header>
+    <main>
+      <form id="suggestForm">
+        <label>Nombre del artista <span style="color: #dc2626;">*</span></label>
+        <input type="text" id="nombre" name="nombre" required maxlength="150" placeholder="Ej: Juan Pérez" />
+
+        <label>Biografía</label>
+        <textarea id="bio" name="bio" maxlength="5000" placeholder="Escribe una breve biografía del artista..."></textarea>
+
+        <label>Redes sociales</label>
+        <div id="socialLinksContainer">
+          <div class="social-link-row">
+            <input type="text" class="social-platform" placeholder="Red social (ej: Instagram, Facebook)" />
+            <input type="url" class="social-url" placeholder="Link (ej: https://instagram.com/...)" />
+          </div>
+        </div>
+        <button type="button" id="addSocialBtn" class="btn-add-social">+ Agregar otra red</button>
+
+        <label>URL de imagen</label>
+        <input type="url" id="image_url" placeholder="https://ejemplo.com/imagen.jpg" />
+        <small style="color: #64748b; display: block; margin-top: 0.25rem;">Una sola imagen del artista</small>
+
+        <label>Notas al admin</label>
+        <textarea id="notas" rows="4" maxlength="1000" placeholder="Información adicional que quieras compartir con el administrador..."></textarea>
+
+        <div style="margin-top: 2rem;">
+          <button type="submit" class="btn user-action-btn">Enviar solicitud</button>
+          <button type="button" id="backBtn" class="btn user-action-btn">Volver</button>
+        </div>
+      </form>
+      <div id="result"></div>
+    </main>
+  </div>
+</body>
+</html>
