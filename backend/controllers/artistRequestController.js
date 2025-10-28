@@ -1,7 +1,31 @@
+/**
+ * Artist Request Controller
+ * 
+ * Gestiona las solicitudes de creación de artistas propuestas por usuarios.
+ * Los usuarios autenticados pueden sugerir nuevos artistas, y los administradores
+ * pueden revisar, aprobar o rechazar estas sugerencias.
+ * 
+ * Flujo principal:
+ * 1. Usuario crea solicitud con datos del artista (createRequest)
+ * 2. Admin revisa solicitudes pendientes (listRequestsAdmin, getRequestAdmin)
+ * 3. Admin aprueba (approveRequest) o rechaza (rejectRequest)
+ * 4. Sistema notifica al usuario sobre la decisión
+ */
+
 const ArtistRequestRepository = require('../repositories/ArtistRequestRepository');
 const ArtistRepository = require('../repositories/ArtistRepository');
 const { sanitizeString, validateUrl } = require('../utils/validateSanitize');
 
+/**
+ * POST /api/artist-requests
+ * Crea una nueva solicitud de artista
+ * 
+ * Validaciones:
+ * - URLs deben ser http/https
+ * - Máximo 1 URL de imagen (se usa como foto principal del artista)
+ * - Rate limit: 3 solicitudes por usuario cada 24 horas
+ * - Sanitiza todas las entradas para prevenir XSS
+ */
 exports.createRequest = async (req, res) => {
   try {
     const user = req.user;
@@ -21,7 +45,7 @@ exports.createRequest = async (req, res) => {
     let parsedImageUrls = null;
     if (image_urls) {
       if (!Array.isArray(image_urls)) return res.status(400).json({ message: 'image_urls debe ser un array de URLs' });
-      if (image_urls.length > 5) return res.status(400).json({ message: 'Máximo 5 URLs de imagen permitidas' });
+      if (image_urls.length > 1) return res.status(400).json({ message: 'Máximo 1 URL de imagen permitida' });
       parsedImageUrls = [];
       for (const u of image_urls) {
         if (!validateUrl(u)) return res.status(400).json({ message: `URL inválida en image_urls: ${u}` });
@@ -109,7 +133,21 @@ exports.getRequestAdmin = async (req, res) => {
   }
 };
 
-// Approve -> create artist using ArtistRepository and mark request approved
+/**
+ * POST /api/admin/artist-requests/:id/approve
+ * Aprueba una solicitud de artista y lo crea en el sistema
+ * 
+ * Proceso:
+ * 1. Verifica que la solicitud existe y está pendiente
+ * 2. Verifica que no existe un artista con ese nombre (evita duplicados)
+ * 3. Mapea los datos de la solicitud al formato del artista:
+ *    - social_links (array) → campos individuales (instagram, spotify, etc.)
+ *    - image_urls[0] → photo del artista
+ * 4. Crea el artista en la base de datos
+ * 5. Marca la solicitud como 'approved'
+ * 6. Registra auditoría
+ * 7. Envía notificación al usuario
+ */
 exports.approveRequest = async (req, res) => {
   try {
     const id = req.params.id;
@@ -118,23 +156,31 @@ exports.approveRequest = async (req, res) => {
     if (!request) return res.status(404).json({ message: 'Solicitud no encontrada' });
     if (request.status !== 'pending') return res.status(400).json({ message: 'Solicitud no está pendiente' });
 
-    // check artist duplicate
+    // Verificar si ya existe un artista con ese nombre (evitar duplicados)
     const existing = await ArtistRepository.findByName(request.nombre);
     if (existing) {
-      // mark request rejected/duplicated to avoid re-processing
       await ArtistRequestRepository.updateStatus(id, 'rejected', admin.id, 'Artista ya existe en el sistema');
       return res.status(409).json({ message: 'Artista ya existe' });
     }
 
-    // create artist reusing fields; image_urls map to photo (take first) and other fields
+    // Preparar datos del artista - tomar primera imagen como foto principal
     const artistData = {
       name: request.nombre,
       bio: request.bio || '',
       photo: (request.image_urls && request.image_urls[0]) ? request.image_urls[0] : null,
     };
     
-    // Map social_links array to individual fields
+    /**
+     * Mapeo de social_links a campos individuales
+     * 
+     * La solicitud contiene: social_links = [{platform: "Instagram", url: "..."}]
+     * La tabla artists tiene: columnas individuales (instagram, spotify, youtube, etc.)
+     * 
+     * Este código convierte el array a las columnas correspondientes,
+     * normalizando los nombres de plataforma (case-insensitive, aliases)
+     */
     if (request.social_links && Array.isArray(request.social_links)) {
+      // Mapeo de nombres de plataforma a nombres de columnas en DB
       const platformMap = {
         'instagram': 'instagram',
         'facebook': 'facebook',

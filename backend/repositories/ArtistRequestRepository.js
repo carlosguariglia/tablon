@@ -1,6 +1,31 @@
+/**
+ * Artist Request Repository
+ * 
+ * Gestiona el acceso a datos de la tabla artist_requests.
+ * Maneja campos JSON (social_links, image_urls, muestras) con cuidado especial.
+ * 
+ * IMPORTANTE - Auto-parsing de JSON en MariaDB:
+ * El driver nativo de MariaDB automáticamente convierte columnas JSON a objetos/arrays JavaScript.
+ * Por eso, antes de hacer JSON.parse(), verificamos si el dato ya es un objeto (typeof !== 'string').
+ * Sin esta verificación, obtendríamos errores como "Unexpected token o in JSON at position 1"
+ */
+
 const { query } = require('../config/db');
 
 class ArtistRequestRepository {
+  /**
+   * Crea una nueva solicitud de artista en la base de datos
+   * 
+   * @param {Object} data - Datos de la solicitud
+   * @param {number} data.user_id - ID del usuario que hace la solicitud
+   * @param {string} data.nombre - Nombre del artista
+   * @param {string} data.bio - Biografía
+   * @param {Array} data.social_links - Array de objetos {platform, url}
+   * @param {Array} data.image_urls - Array de URLs de imágenes
+   * @returns {number} ID de la solicitud creada
+   * 
+   * Nota: Los arrays/objetos se convierten a JSON antes de guardar en DB
+   */
   async create(data = {}) {
     const { user_id, nombre, bio = null, genero = null, social_links = null, image_urls = null, muestras = null, notas_usuario = null } = data;
     
@@ -13,6 +38,20 @@ class ArtistRequestRepository {
     return insertId != null ? Number(insertId) : null;
   }
 
+  /**
+   * Obtiene una solicitud por ID
+   * 
+   * @param {number} id - ID de la solicitud
+   * @returns {Object|null} Solicitud con campos JSON parseados
+   * 
+   * CRÍTICO - Manejo de JSON auto-parseado:
+   * MariaDB puede devolver los campos JSON ya convertidos a objetos JavaScript.
+   * Verificamos typeof === 'string' antes de parsear para evitar errores.
+   * 
+   * Ejemplo:
+   * - Si viene como string: '["url1","url2"]' → parseamos → ["url1","url2"]
+   * - Si viene como array: ["url1","url2"] → lo dejamos tal cual
+   */
   async findById(id) {
     const sql = 'SELECT * FROM artist_requests WHERE id = ? LIMIT 1';
     const results = await query(sql, [id]);

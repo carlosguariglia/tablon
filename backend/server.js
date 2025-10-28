@@ -1,3 +1,23 @@
+/**
+ * Server.js - Punto de entrada principal del backend
+ * 
+ * Configura y arranca el servidor Express con:
+ * - CORS configurado de forma segura
+ * - Rate limiting para prevenir abuso
+ * - Rutas API REST organizadas por funcionalidad
+ * - Servicio de archivos estáticos para el frontend
+ * 
+ * Estructura de rutas:
+ * - /api/auth - Autenticación (login, register)
+ * - /api/anuncios - CRUD de anuncios/eventos
+ * - /api/artistas - Vista pública de artistas
+ * - /api/admin/artistas - Gestión de artistas (admin)
+ * - /api/artist-requests - Sugerencias de usuarios
+ * - /api/admin/artist-requests - Gestión de sugerencias (admin)
+ * - /api/audit - Auditoría (admin)
+ * - /api/notifications - Notificaciones de usuarios
+ */
+
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
@@ -9,7 +29,10 @@ const anuncioRoutes = require('./routes/anuncioRoutes');
 
 const app = express();
 
-// Configuración de CORS segura
+/**
+ * Configuración de CORS (Cross-Origin Resource Sharing)
+ * Permite que el frontend haga requests al backend de forma segura
+ */
 const corsOptions = {
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -18,6 +41,25 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
+
+/**
+ * Rate Limiting - Protección contra abuso y ataques
+ * 
+ * Implementa dos niveles de rate limiting:
+ * 
+ * 1. General (generalLimiter):
+ *    - 100 requests por IP cada 15 minutos
+ *    - Aplica a todas las rutas del servidor
+ *    - Previene DDoS y uso excesivo
+ * 
+ * 2. Autenticación (authLimiter):
+ *    - 5 intentos de login/registro por IP cada 15 minutos
+ *    - Más restrictivo para prevenir brute force attacks
+ *    - Solo aplica a rutas de /api/auth
+ * 
+ * Nota: También existe rate limiting a nivel de usuario para artist-requests
+ * (3 sugerencias por usuario cada 24h) implementado en el controller
+ */
 
 // Rate limiting general
 const generalLimiter = rateLimit({

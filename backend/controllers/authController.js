@@ -1,9 +1,31 @@
+/**
+ * Auth Controller
+ * 
+ * Gestiona el registro, login y verificación de usuarios.
+ * Implementa seguridad con:
+ * - Sanitización de entradas (prevención XSS)
+ * - Validación de emails y contraseñas
+ * - Hash de contraseñas con bcrypt
+ * - Tokens JWT para autenticación stateless
+ * - Auditoría de acciones (login registrado en audit_log)
+ */
 
 const User = require('../repositories/UserRepository');
 const { generateToken, verifyToken } = require('../config/jwt');
 const { sanitizeString, validateEmail, validatePassword } = require('../utils/validateSanitize');
 const { logAction } = require('./auditController');
 
+/**
+ * POST /api/auth/register
+ * Registra un nuevo usuario en el sistema
+ * 
+ * Validaciones:
+ * - Email válido y único
+ * - Contraseña fuerte (min 8 chars, mayúscula, minúscula, número)
+ * - Sanitización de todos los campos
+ * 
+ * @returns {Object} { success, message, token, user }
+ */
 const register = async (req, res) => {
   try {
     let { name, email, password } = req.body;
@@ -37,6 +59,22 @@ const register = async (req, res) => {
   }
 };
 
+/**
+ * POST /api/auth/login
+ * Autentica un usuario existente
+ * 
+ * Proceso:
+ * 1. Valida formato de email
+ * 2. Busca usuario en base de datos
+ * 3. Verifica contraseña con bcrypt.compare()
+ * 4. Genera JWT token si las credenciales son correctas
+ * 5. Registra el login en audit_log
+ * 
+ * @returns {Object} { success, message, token, user }
+ * 
+ * Seguridad: No revela si el error es por email inexistente o contraseña incorrecta
+ * (mensaje genérico "Credenciales inválidas")
+ */
 const login = async (req, res) => {
   try {
     let { email, password } = req.body;
