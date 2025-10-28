@@ -1,5 +1,29 @@
+/**
+ * Auth.js - Sistema de Autenticación Frontend
+ * 
+ * Maneja la autenticación con JWT (JSON Web Tokens) almacenados en localStorage.
+ * 
+ * Funciones principales:
+ * - verifyAuth(): Verifica si el token es válido
+ * - handleLogin(): Procesa el inicio de sesión
+ * - handleRegister(): Procesa el registro de nuevo usuario
+ * - logout(): Cierra sesión y limpia el token
+ * - showToast(): Muestra mensajes de éxito/error
+ * 
+ * Almacenamiento:
+ * - Token JWT: localStorage.getItem('token')
+ * - El token se incluye en cada request como: 'Authorization: Bearer <token>'
+ */
+
 const API_URL = '/api/auth';
 
+/**
+ * Verifica si el usuario está autenticado
+ * 
+ * @returns {Object|false} Devuelve objeto de usuario si está autenticado, false si no
+ * 
+ * Uso común: await verifyAuth() al cargar páginas protegidas
+ */
 async function verifyAuth() {
   const token = localStorage.getItem('token');
   if (!token) return false;
@@ -15,6 +39,13 @@ async function verifyAuth() {
     return false;
   }
 }
+
+/**
+ * Muestra un mensaje temporal (toast) en la esquina superior derecha
+ * 
+ * @param {string} message - Mensaje a mostrar
+ * @param {boolean} isError - true para error (rojo), false para éxito (verde)
+ */
 function showToast(message, isError = true) {
   // Elimina toasts anteriores para evitar duplicados
   const oldToasts = document.querySelectorAll('.toast');
